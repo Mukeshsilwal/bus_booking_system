@@ -62,7 +62,7 @@ const TicketConfirmed = () => {
         `${API_CONFIG.ENDPOINTS.CANCLE_TICKET}/${seatId}?email=${email}&ticketNo=${ticketId}`
       );
 
-      if (response.ok) {
+      if (response) {
         toast.success("Ticket Cancelled.");
         navigate("/");
       } else {
