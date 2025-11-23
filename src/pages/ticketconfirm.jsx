@@ -59,10 +59,10 @@ const TicketConfirmed = () => {
 
     try {
       const response = await ApiService.delete(
-        `${API_CONFIG.ENDPOINTS.BOOK_SEAT}/${seatId}?email=${email}&ticketNo=${ticketId}`
+        `${API_CONFIG.ENDPOINTS.CANCLE_TICKET}/${seatId}?email=${email}&ticketNo=${ticketId}`
       );
 
-      if (response) {
+      if (response.ok) {
         toast.success("Ticket Cancelled.");
         navigate("/");
       } else {
