@@ -25,6 +25,7 @@ const API_CONFIG = {
     // Seat endpoints
     CREATE_SEAT: '/admin/postSeat',
     BOOK_SEAT: '/bookSeats',
+    CANCLE_TICKET: 'tickets/seat',
     
     // Booking endpoints
     CREATE_BOOKING: '/booking/post',
