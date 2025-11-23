@@ -45,7 +45,7 @@ export default function TicketDetails() {
   async function esewaPaymentCall(signature, tid, bookingId) {
     const formData = {
       amount: totalCost,
-      failure_url: API_CONFIG.ENDPOINTS.FAILER_URL,
+      failure_url: "https://busbookingsystem-mu.vercel.app/booking-failed",
       product_delivery_charge: "0",
       product_service_charge: "0",
       product_code: "EPAYTEST",
