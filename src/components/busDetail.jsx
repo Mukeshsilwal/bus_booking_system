@@ -2,6 +2,7 @@ import React, { useContext, useMemo, useCallback, useState } from "react";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import SelectedBusContext from "../context/selectedbus";
+import busIcon from "../assets/bus.svg";
 
 const BusDetail = ({ bus }) => {
   const navigate = useNavigate();
@@ -103,7 +104,7 @@ const handleClick = useCallback(() => {
         <div>
           <div className="flex items-center gap-3">
             <img
-              src={bus?.image || '/logo192.png'}
+              src={bus?.image || busIcon}
               alt={bus?.busName || 'bus image'}
               className="w-12 h-12 rounded-md object-cover border"
             />
