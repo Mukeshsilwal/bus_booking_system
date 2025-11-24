@@ -33,7 +33,7 @@ export default function ChangePassword() {
         username: email,
       });
 
-      if (response) {
+      if (response.ok) {
         toast.success("OTP sent");
         setOtpModalVisible(true);
       } else {
