@@ -14,20 +14,24 @@ const TicketConfirmed = () => {
 
   useEffect(() => {
     fetchPdf();
+    // revoke object URL on unmount or when pdfUrl changes
     return () => {
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
     };
-    # eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function fetchPdf() {
     setIsLoading(true);
     setError("");
 
-    const seatResponses = JSON.parse(localStorage.getItem("seatRes")) || [];
-    const firstTicket = seatResponses[0];
+    const raw = JSON.parse(localStorage.getItem("seatRes")) || [];
+    const seatResponses = Array.isArray(raw) ? raw : [raw];
+    const firstTicket = seatResponses[0] || {};
 
-    if (!firstTicket || !firstTicket.ticketNo) {
+    const ticketId = firstTicket.ticketNo || firstTicket.ticketId || firstTicket.id;
+
+    if (!ticketId) {
       setError("No ticket found.");
       toast.error("No ticket found!");
       setIsLoading(false);
@@ -36,7 +40,7 @@ const TicketConfirmed = () => {
 
     try {
       const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.GENERATE_TICKET}?ticketId=${encodeURIComponent(
-        firstTicket.ticketNo
+        ticketId
       )}`;
 
       const response = await fetch(url);
@@ -44,7 +48,10 @@ const TicketConfirmed = () => {
 
       const blob = await response.blob();
       const objectUrl = URL.createObjectURL(blob);
-      setPdfUrl(objectUrl);
+      setPdfUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return objectUrl;
+      });
     } catch (err) {
       console.error("Error fetching PDF:", err);
       setError("Failed to load ticket PDF.");
@@ -58,7 +65,8 @@ const TicketConfirmed = () => {
     setIsCancelling(true);
     setError("");
 
-    const seatResponses = JSON.parse(localStorage.getItem("seatRes")) || [];
+    const raw = JSON.parse(localStorage.getItem("seatRes")) || [];
+    const seatResponses = Array.isArray(raw) ? raw : [raw];
     const email = localStorage.getItem("email") || "";
 
     const ticketObj = seatResponses[0] || {};
