@@ -192,10 +192,22 @@ export function AdminPanel() {
       return;
     }
 
+    // normalize seat number and check duplicates locally before API call
+    const seatNumTrim = String(seatNumber).trim();
+    const targetBus = allBuses.find((b) => String(b.id) === String(seatBusId));
+    if (targetBus) {
+      const existingSeats = Array.isArray(targetBus.seats) ? targetBus.seats : [];
+      const duplicate = existingSeats.some((s) => String(s.seatNumber).toLowerCase() === seatNumTrim.toLowerCase());
+      if (duplicate) {
+        toast.error("A seat with this number already exists for the selected bus.");
+        return;
+      }
+    }
+
     try {
         setIsCreatingSeat(true);
         const seatRes = await ApiService.post(`${API_CONFIG.ENDPOINTS.CREATE_SEAT}/${seatBusId}`, {
-          seatNumber,
+          seatNumber: seatNumTrim,
           reserved: false,
         });
 
