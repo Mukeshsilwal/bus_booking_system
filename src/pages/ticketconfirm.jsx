@@ -1,110 +1,137 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import NavigationBar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import API_CONFIG from "../config/api";
+import ApiService from "../services/api.service";
 
 const TicketConfirmed = () => {
   const [pdfUrl, setPdfUrl] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchPdf();
+    return () => {
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+    };
+    # eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ------------------------------
-  // Fetch Ticket PDF
-  // ------------------------------
   async function fetchPdf() {
+    setIsLoading(true);
+    setError("");
+
     const seatResponses = JSON.parse(localStorage.getItem("seatRes")) || [];
     const firstTicket = seatResponses[0];
 
-    if (!firstTicket) {
+    if (!firstTicket || !firstTicket.ticketNo) {
+      setError("No ticket found.");
       toast.error("No ticket found!");
+      setIsLoading(false);
       return;
     }
 
     try {
-      const response = await fetch(
-    `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.GENERATE_TICKET}?ticketId=${firstTicket.ticketNo}`
-  );
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.GENERATE_TICKET}?ticketId=${encodeURIComponent(
+        firstTicket.ticketNo
+      )}`;
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch PDF");
-      }
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Failed to fetch PDF");
 
       const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      setPdfUrl(url);
-    } catch (error) {
-      console.error("Error fetching PDF:", error);
+      const objectUrl = URL.createObjectURL(blob);
+      setPdfUrl(objectUrl);
+    } catch (err) {
+      console.error("Error fetching PDF:", err);
+      setError("Failed to load ticket PDF.");
       toast.error("Failed to load ticket PDF.");
+    } finally {
+      setIsLoading(false);
     }
   }
 
-  // ------------------------------
-  // Cancel Ticket
-  // ------------------------------
   async function cancelTicket() {
-    const selectedBus = JSON.parse(localStorage.getItem("busListDetails"))?.selectedBus;
-    const seatNumber = JSON.parse(localStorage.getItem("selectedSeats"))?.[0];
-    const seatId = selectedBus?.seats.find((seat) => seat.seatNumber === seatNumber)?.id;
-    const email = localStorage.getItem("email");
-    const ticketId = JSON.parse(localStorage.getItem("seatRes"))?.[0]?.ticketNo;
+    setIsCancelling(true);
+    setError("");
 
-    if (!seatId || !ticketId) {
-      toast.error("Cannot find ticket or seat to cancel.");
+    const seatResponses = JSON.parse(localStorage.getItem("seatRes")) || [];
+    const email = localStorage.getItem("email") || "";
+
+    const ticketObj = seatResponses[0] || {};
+    const ticketId = ticketObj.ticketNo || ticketObj.ticketId || ticketObj.id;
+
+    if (!ticketId) {
+      toast.error("Cannot find ticket to cancel.");
+      setIsCancelling(false);
       return;
     }
 
     try {
-      const response = await ApiService.delete(
-        `${API_CONFIG.ENDPOINTS.CANCLE_TICKET}/${seatId}?email=${email}&ticketNo=${ticketId}`
-      );
+      const url = `${API_CONFIG.ENDPOINTS.CANCLE_TICKET}?email=${encodeURIComponent(
+        email
+      )}&ticketNo=${encodeURIComponent(ticketId)}`;
 
-      if (response) {
-        toast.success("Ticket Cancelled.");
+      const response = await ApiService.delete(url);
+
+      if (response && response.ok) {
+        toast.success("Ticket cancelled.");
+        localStorage.removeItem("seatRes");
+        localStorage.removeItem("selectedSeats");
+        localStorage.removeItem("bookingRes");
         navigate("/");
       } else {
-        toast.error("Failed to cancel ticket.");
+        const err = response ? await response.json().catch(() => ({})) : {};
+        const msg = err.message || "Failed to cancel ticket.";
+        toast.error(msg);
       }
-    } catch (error) {
-      console.error("Error cancelling ticket:", error);
+    } catch (err) {
+      console.error("Error cancelling ticket:", err);
       toast.error("Failed to cancel ticket.");
+    } finally {
+      setIsCancelling(false);
     }
   }
 
   return (
-    <div className="flex-column h-screen w-screen overflow-auto pt-4 justify-center">
+    <div className="min-h-screen bg-gray-50 p-4">
       <NavigationBar />
 
-      <div style={{ width: "100%", height: "500px", marginTop: "3em" }}>
-        {pdfUrl ? (
+      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md mt-8 p-6">
+        <h2 className="text-xl font-semibold mb-4">Ticket Confirmation</h2>
+
+        {isLoading ? (
+          <div className="text-center py-20">Loading ticket...</div>
+        ) : error ? (
+          <div className="text-center py-8 text-red-600">{error}</div>
+        ) : pdfUrl ? (
           <>
-            <embed
-              src={pdfUrl}
-              type="application/pdf"
-              width="100%"
-              height="100%"
-            />
+            <div style={{ width: "100%", height: "600px" }} className="border rounded overflow-hidden">
+              <embed src={pdfUrl} type="application/pdf" width="100%" height="100%" />
+            </div>
+
             <div className="flex justify-center mt-4 gap-4">
               <a
                 href={pdfUrl}
                 download="ticket.pdf"
-                className="pagination-btn bg-green-600 text-white px-4 py-2 rounded"
+                className="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700"
               >
                 Download Ticket
               </a>
               <button
                 onClick={cancelTicket}
-                className="pagination-btn bg-red-600 text-white px-4 py-2 rounded"
+                disabled={isCancelling}
+                className={`px-4 py-2 rounded shadow ${isCancelling ? 'bg-red-400 text-white cursor-not-allowed' : 'bg-red-600 text-white hover:bg-red-700'}`}
               >
-                Cancel Ticket
+                {isCancelling ? 'Cancelling...' : 'Cancel Ticket'}
               </button>
             </div>
           </>
         ) : (
-          <p>Loading ticket...</p>
+          <div className="text-center py-8">No ticket available.</div>
         )}
       </div>
     </div>
