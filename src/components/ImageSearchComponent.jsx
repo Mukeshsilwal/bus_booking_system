@@ -1,7 +1,7 @@
 
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../functions";
+import { toast } from "react-toastify";
 import BusListContext from "../context/busdetails";
 import ApiService from "../services/api.service";
 import API_CONFIG from "../config/api";
@@ -14,31 +14,63 @@ const ImageSearchComponent = () => {
   const [destination, setDestination] = useState("");
   const [date, setDate] = useState("");
   const [busStops, setBusStops] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [fetchError, setFetchError] = useState("");
 
   const today = new Date().toISOString().split("T")[0];
 
-  const handleSearch = async () => {
+  const handleSearch = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+
+    setFetchError("");
+
+    // basic validation
+    if (!source || !destination || !date) {
+      setFetchError("Please select source, destination and date.");
+      return;
+    }
+
+    if (source === destination) {
+      setFetchError("Source and destination cannot be the same.");
+      return;
+    }
+
+    setIsSearching(true);
     try {
-     const res = await ApiService.get(
-    `${API_CONFIG.ENDPOINTS.SEARCH_BUSES}?source=${source}&destination=${destination}&date=${date}`
-);
+      const res = await ApiService.get(
+        `${API_CONFIG.ENDPOINTS.SEARCH_BUSES}?source=${encodeURIComponent(source)}&destination=${encodeURIComponent(destination)}&date=${encodeURIComponent(date)}`
+      );
 
-const response = await res.json();  // <-- REQUIRED
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        const msg = err.message || `Search failed: ${res.status}`;
+        setFetchError(msg);
+        toast.error(msg);
+        setIsSearching(false);
+        return;
+      }
 
-if (response) {
-    localStorage.setItem("searchDetails", JSON.stringify({ source, destination, date }));
+      const response = await res.json();
 
-    localStorage.setItem(
-      "busListDetails",
-      JSON.stringify({ busList: response })
-    );
+      // keep consistent structure: assume response is array of buses
+      const buses = Array.isArray(response) ? response : (response?.busList || []);
 
-    setBusList(response);
-    navigate("/buslist");
-}
+      localStorage.setItem("searchDetails", JSON.stringify({ source, destination, date }));
+      localStorage.setItem("busListDetails", JSON.stringify({ busList: buses }));
 
+      setBusList(buses);
+
+      if (!buses || buses.length === 0) {
+        toast.info("No buses found for the selected route/date.");
+      }
+
+      navigate("/buslist");
     } catch (error) {
       console.error("Search failed:", error);
+      setFetchError("Search failed. Please try again.");
+      toast.error("Search failed. Please check your network or try later.");
+    } finally {
+      setIsSearching(false);
     }
   };
 
