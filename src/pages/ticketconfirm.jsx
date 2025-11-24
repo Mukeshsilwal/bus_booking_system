@@ -156,7 +156,7 @@ const TicketConfirmed = () => {
         if (response && [400, 404, 405].includes(response.status)) {
               try {
                 console.info('Attempting POST fallback to cancel endpoint');
-                const postResp = await ApiService.post(API_CONFIG.ENDPOINTS.CANCLE_TICKET, { email, ticketNo: ticketId });
+                const postResp = await ApiService.post(API_CONFIG.ENDPOINTS.CANCLE_TICKET, { email, ticketNo: (ticketNo || tId) });
               if (postResp && postResp.ok) {
                 toast.success('Ticket cancelled (fallback).');
                 localStorage.removeItem('seatRes');
