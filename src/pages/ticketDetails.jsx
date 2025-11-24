@@ -132,7 +132,13 @@ export default function TicketDetails() {
 
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          throw new Error(err.message || `Failed to book seat ${seat.seatNumber}`);
+          const serverMsg = err && err.message ? err.message : `Failed to book seat ${seat.seatNumber}`;
+          console.error('Seat booking failed for seat', seat.seatNumber, { status: res.status, body: err });
+          // Provide a clearer error to the user including seat number
+          if (/(same entry)/i.test(serverMsg)) {
+            throw new Error(`Seat ${seat.seatNumber} could not be booked: ${serverMsg}. It appears a ticket already exists for this seat. Please refresh the page or choose a different seat.`);
+          }
+          throw new Error(`${serverMsg} (seat ${seat.seatNumber})`);
         }
 
         const data = await res.json();
@@ -140,7 +146,12 @@ export default function TicketDetails() {
         bookedSeatNumbers.push(seat.seatNumber);
 
         // Confirm seat (mark as occupied)
-        await ApiService.post(`${API_CONFIG.ENDPOINTS.BOOK_SEAT}/${seat.id}`, {});
+        try {
+          await ApiService.post(`${API_CONFIG.ENDPOINTS.BOOK_SEAT}/${seat.id}`, {});
+        } catch (confirmErr) {
+          console.warn('Failed to confirm seat occupancy after booking', seat.seatNumber, confirmErr);
+          // non-fatal: continue — the main booking succeeded and seatResponses contains the server data
+        }
       }
     } catch (err) {
       console.error("Seat booking error:", err);
@@ -257,7 +268,9 @@ export default function TicketDetails() {
             </div>
           </div>
 
-          <button onClick={bookTicket}>Pay with eSewa</button>
+                  <button onClick={bookTicket} disabled={isBooking} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-60">
+                    {isBooking ? 'Processing...' : 'Pay with eSewa'}
+                  </button>
         </div>
 
         <div className="right-details">
