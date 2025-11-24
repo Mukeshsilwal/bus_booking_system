@@ -10,6 +10,7 @@ const TicketConfirmed = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCancelling, setIsCancelling] = useState(false);
   const [error, setError] = useState("");
+  const [devCancelResponse, setDevCancelResponse] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -91,24 +92,26 @@ const TicketConfirmed = () => {
           localStorage.removeItem("bookingRes");
           navigate("/");
         } else {
-          // Try to extract a helpful error message from server
-          let msg = "Failed to cancel ticket.";
-          try {
-            if (response) {
-              const body = await response.json().catch(() => null);
-              if (body && body.message) msg = body.message;
-              else if (response.statusText) msg = `${msg} (${response.status} ${response.statusText})`;
-              else msg = `${msg} (status ${response.status || 'unknown'})`;
-            }
-          } catch (e) {
-            console.warn('Error parsing cancel response body', e);
+        // Try to extract a helpful error message from server
+        let msg = "Failed to cancel ticket.";
+        try {
+          if (response) {
+            const body = await response.json().catch(() => null);
+            // store for dev debug panel
+            if (process.env.NODE_ENV === 'development') setDevCancelResponse(body || { status: response.status, statusText: response.statusText });
+            if (body && body.message) msg = body.message;
+            else if (response.statusText) msg = `${msg} (${response.status} ${response.statusText})`;
+            else msg = `${msg} (status ${response.status || 'unknown'})`;
           }
-          console.error('Cancel ticket failed', { endpoint, status: response && response.status });
-          // If server responded with method not allowed or bad request, try a POST fallback
-          if (response && [400, 404, 405].includes(response.status)) {
-            try {
-              console.info('Attempting POST fallback to cancel endpoint');
-              const postResp = await ApiService.post(API_CONFIG.ENDPOINTS.CANCLE_TICKET, { email, ticketNo });
+        } catch (e) {
+          console.warn('Error parsing cancel response body', e);
+        }
+        console.error('Cancel ticket failed', { endpoint, status: response && response.status });
+        // If server responded with method not allowed or bad request, try a POST fallback
+        if (response && [400, 404, 405].includes(response.status)) {
+              try {
+                console.info('Attempting POST fallback to cancel endpoint');
+                const postResp = await ApiService.post(API_CONFIG.ENDPOINTS.CANCLE_TICKET, { email, ticketNo: ticketId });
               if (postResp && postResp.ok) {
                 toast.success('Ticket cancelled (fallback).');
                 localStorage.removeItem('seatRes');
@@ -124,6 +127,7 @@ const TicketConfirmed = () => {
               }
             } catch (pfErr) {
               console.error('Fallback cancel error', pfErr);
+              if (process.env.NODE_ENV === 'development') setDevCancelResponse({ error: pfErr && (pfErr.message || String(pfErr)) });
               toast.error('Cancel failed (fallback).');
             }
           } else {
@@ -159,18 +163,24 @@ const TicketConfirmed = () => {
               <a
                 href={pdfUrl}
                 download="ticket.pdf"
-                className="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700"
+                className="inline-flex items-center justify-center bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300"
               >
                 Download Ticket
               </a>
               <button
                 onClick={cancelTicket}
                 disabled={isCancelling}
-                className={`px-4 py-2 rounded shadow ${isCancelling ? 'bg-red-400 text-white cursor-not-allowed' : 'bg-red-600 text-white hover:bg-red-700'}`}
+                className={`inline-flex items-center justify-center px-4 py-2 rounded shadow focus:outline-none focus:ring-2 focus:ring-red-300 ${isCancelling ? 'bg-red-400 text-white cursor-not-allowed opacity-70' : 'bg-red-600 text-white hover:bg-red-700'}`}
               >
                 {isCancelling ? 'Cancelling...' : 'Cancel Ticket'}
               </button>
             </div>
+            {process.env.NODE_ENV === 'development' && devCancelResponse && (
+              <div className="mt-4 p-3 bg-gray-50 border rounded text-xs text-gray-700">
+                <div className="font-medium mb-2">Dev: Last cancel response</div>
+                <pre className="whitespace-pre-wrap">{JSON.stringify(devCancelResponse, null, 2)}</pre>
+              </div>
+            )}
           </>
         ) : (
           <div className="text-center py-8">No ticket available.</div>

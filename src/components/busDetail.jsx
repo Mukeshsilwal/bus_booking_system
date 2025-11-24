@@ -97,7 +97,7 @@ const handleClick = useCallback(() => {
       role="button"
       tabIndex={0}
       onKeyDown={(e) => (e.key === "Enter" ? handleClick() : null)}
-      className="bus-detail bg-white rounded-lg shadow-md p-4 md:p-6 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-102 border border-gray-100"
+        className="bus-detail bg-white border border-gray-100 rounded-lg shadow-md p-4 md:p-6 cursor-pointer transition-transform duration-300 hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-200"
       onClick={handleClick}
     >
       <div className="flex justify-between items-start mb-4">
@@ -106,7 +106,7 @@ const handleClick = useCallback(() => {
             <img
               src={bus?.image || busIcon}
               alt={bus?.busName || 'bus image'}
-              className="w-12 h-12 rounded-md object-cover border"
+              className="w-12 h-12 rounded-md object-cover border border-gray-200"
             />
             <div>
               <h3 className="bus-name text-lg md:text-xl font-bold text-gray-800">{bus?.busName || 'Unnamed Bus'}</h3>
@@ -148,30 +148,30 @@ const handleClick = useCallback(() => {
         <div className="text-right w-full md:w-48">
           <p className="text-sm text-gray-500">Available seats</p>
           <p className="text-base font-medium text-gray-800">{availableSeats}</p>
-          <button
-            onClick={(e) => { e.stopPropagation(); setShowSeatPreview((s) => !s); }}
-            className="mt-3 w-full bg-white border border-gray-200 text-gray-700 py-2 rounded-md hover:shadow-sm"
-            aria-expanded={showSeatPreview}
-            aria-controls={`seat-preview-${bus?.id || 'unknown'}`}
-          >
-            {showSeatPreview ? 'Hide seats' : 'Preview seats'}
-          </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowSeatPreview((s) => !s); }}
+              className="mt-3 w-full bg-white border border-gray-200 text-gray-700 py-2 rounded-md hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              aria-expanded={showSeatPreview}
+              aria-controls={`seat-preview-${bus?.id || 'unknown'}`}
+            >
+              {showSeatPreview ? 'Hide seats' : 'Preview seats'}
+            </button>
         </div>
       </div>
 
       <div className="flex items-center justify-between">
         <p className="bus-price text-xl font-bold text-green-600">Rs. {priceFormatted}/-</p>
-        <button
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all duration-200"
-          onClick={(e) => {
-            // prevent the div's onClick from firing twice
-            e.stopPropagation();
-            handleClick();
-          }}
-          aria-label={`Book ${bus?.busName || 'bus'}`}
-        >
-          Book
-        </button>
+          <button
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            onClick={(e) => {
+              // prevent the div's onClick from firing twice
+              e.stopPropagation();
+              handleClick();
+            }}
+            aria-label={`Book ${bus?.busName || 'bus'}`}
+          >
+            Book
+          </button>
       </div>
 
       {/* seat preview grid */}

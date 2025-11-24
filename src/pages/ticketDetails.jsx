@@ -4,7 +4,6 @@ import SelectedBusContext from "../context/selectedbus";
 import API_CONFIG from "../config/api";
 import ApiService from "../services/api.service";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
 import  "./SeatSelection.css";
 
 export default function TicketDetails() {
@@ -16,9 +15,7 @@ export default function TicketDetails() {
   const [contact, setContact] = useState("");
   const [totalCost, setTotalCost] = useState(0);
   const [isBooking, setIsBooking] = useState(false);
-  const [error, setError] = useState("");
 
-  const navigate = useNavigate();
 
   // -----------------------------------
   // CALCULATE TOTAL COST
@@ -49,7 +46,7 @@ export default function TicketDetails() {
   // -----------------------------------
   // ESEWA PAYMENT FORM SUBMIT
   // -----------------------------------
-  async function esewaPaymentCall(signature, tid, bookingId) {
+  async function esewaPaymentCall(signature, tid, _bookingId) {
     // Build form payload and submit to eSewa
     const formData = {
       amount: totalCost,
@@ -87,7 +84,6 @@ export default function TicketDetails() {
   // -----------------------------------
   async function bookTicket() {
     // client-side validation
-    setError("");
     if (!selectedSeats.length) return toast.error("No seat selected!");
     if (!name.trim()) return toast.error("Enter passenger name!");
     if (!email.trim()) return toast.error("Enter email!");

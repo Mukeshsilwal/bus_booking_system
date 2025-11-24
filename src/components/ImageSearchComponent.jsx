@@ -1,6 +1,7 @@
 
 import React from "react";
 import { useContext, useEffect, useState } from "react";
+import busIcon from "../assets/bus.svg";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import BusListContext from "../context/busdetails";
@@ -98,7 +99,7 @@ const ImageSearchComponent = () => {
         {/* Left Side Image */}
         <div className="md:w-1/2 p-8 flex items-center justify-center bg-blue-50">
           <img
-            src="https://img.freepik.com/premium-vector/simple-buss-traansportation-logo-design_569344-386.jpg?w=2000"
+            src={busIcon}
             alt="Bus travel"
             className="rounded-lg shadow-md w-full h-64 object-contain transform transition-all duration-500 hover:scale-105"
           />
@@ -159,12 +160,15 @@ const ImageSearchComponent = () => {
             </div>
 
             {/* Search Button */}
+            {fetchError && (
+              <div className="text-sm text-red-600 mb-2" role="alert">{fetchError}</div>
+            )}
             <button
               onClick={handleSearch}
-              disabled={!source || !destination || !date}
+              disabled={!source || !destination || !date || isSearching}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Search Buses
+              {isSearching ? 'Searching...' : 'Search Buses'}
             </button>
 
           </div>
