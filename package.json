@@ -17,7 +17,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "npm i &&react-scripts build"
+    "build": "npm i &&react-scripts build",
+    "lint": "eslint \"src/**/*.{js,jsx}\" --ext .js,.jsx --quiet"
   },
   "browserslist": {
     "production": [
