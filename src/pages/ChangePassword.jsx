@@ -65,12 +65,13 @@ export default function ChangePassword() {
   };
 
   const handleSendOtp = async () => {
-    if (!validateAll(true)) return;
-
-    if (!validateEmail(email)) {
-      setErrors((s) => ({ ...s, email: "Enter a valid email" }));
+    // Only validate email when sending OTP
+    if (!email || !validateEmail(email)) {
+      setErrors((s) => ({ ...s, email: !email ? "Email is required" : "Enter a valid email" }));
       return;
     }
+    // clear OTP-related errors
+    setErrors((s) => ({ ...s, otp: undefined }));
 
     setIsSendingOtp(true);
     try {
