@@ -78,23 +78,58 @@ const TicketConfirmed = () => {
     }
 
     try {
-      const url = `${API_CONFIG.ENDPOINTS.CANCLE_TICKET}?email=${encodeURIComponent(
-        email
-      )}&ticketNo=${encodeURIComponent(ticketId)}`;
+        const endpoint = `${API_CONFIG.ENDPOINTS.CANCLE_TICKET}?email=${encodeURIComponent(
+          email
+        )}&ticketNo=${encodeURIComponent(ticketId)}`;
 
-      const response = await ApiService.delete(url);
+        const response = await ApiService.delete(endpoint);
 
-      if (response && response.ok) {
-        toast.success("Ticket cancelled.");
-        localStorage.removeItem("seatRes");
-        localStorage.removeItem("selectedSeats");
-        localStorage.removeItem("bookingRes");
-        navigate("/");
-      } else {
-        const err = response ? await response.json().catch(() => ({})) : {};
-        const msg = err.message || "Failed to cancel ticket.";
-        toast.error(msg);
-      }
+        if (response && response.ok) {
+          toast.success("Ticket cancelled.");
+          localStorage.removeItem("seatRes");
+          localStorage.removeItem("selectedSeats");
+          localStorage.removeItem("bookingRes");
+          navigate("/");
+        } else {
+          // Try to extract a helpful error message from server
+          let msg = "Failed to cancel ticket.";
+          try {
+            if (response) {
+              const body = await response.json().catch(() => null);
+              if (body && body.message) msg = body.message;
+              else if (response.statusText) msg = `${msg} (${response.status} ${response.statusText})`;
+              else msg = `${msg} (status ${response.status || 'unknown'})`;
+            }
+          } catch (e) {
+            console.warn('Error parsing cancel response body', e);
+          }
+          console.error('Cancel ticket failed', { endpoint, status: response && response.status });
+          // If server responded with method not allowed or bad request, try a POST fallback
+          if (response && [400, 404, 405].includes(response.status)) {
+            try {
+              console.info('Attempting POST fallback to cancel endpoint');
+              const postResp = await ApiService.post(API_CONFIG.ENDPOINTS.CANCLE_TICKET, { email, ticketNo });
+              if (postResp && postResp.ok) {
+                toast.success('Ticket cancelled (fallback).');
+                localStorage.removeItem('seatRes');
+                localStorage.removeItem('selectedSeats');
+                localStorage.removeItem('bookingRes');
+                navigate('/');
+                return;
+              } else {
+                const body = postResp ? await postResp.json().catch(() => null) : null;
+                const pm = (body && body.message) || `Fallback failed (${postResp && postResp.status})`;
+                console.error('Fallback cancel failed', { pm, postResp });
+                toast.error(pm);
+              }
+            } catch (pfErr) {
+              console.error('Fallback cancel error', pfErr);
+              toast.error('Cancel failed (fallback).');
+            }
+          } else {
+            toast.error(msg);
+          }
+        }
     } catch (err) {
       console.error("Error cancelling ticket:", err);
       toast.error("Failed to cancel ticket.");
