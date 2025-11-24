@@ -34,6 +34,9 @@ const API_CONFIG = {
     // Ticket endpoints
     BOOK_TICKET: '/tickets/seat',
     GENERATE_TICKET: '/tickets/generate',
+
+        // Delete ticket by ticket id
+    DELETE_TICKET: '/tickets/ticket',
     
     // Payment endpoints
     GENERATE_SIGNATURE: '/secret/generateSignature',

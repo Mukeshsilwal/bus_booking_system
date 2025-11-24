@@ -70,28 +70,73 @@ const TicketConfirmed = () => {
     const email = localStorage.getItem("email") || "";
 
     const ticketObj = seatResponses[0] || {};
-    const ticketId = ticketObj.ticketNo || ticketObj.ticketId || ticketObj.id;
+    // tId: preferred ticket identifier for DELETE /ticket/{tId}
+    const tId = ticketObj.tId || ticketObj.ticketId || ticketObj.id || ticketObj.ticket_id || null;
+    // ticketNo and pathId kept for backwards compatibility
+    const ticketNo = ticketObj.ticketNo || ticketObj.ticketNoId || ticketObj.ticketId || null;
+    const pathId = ticketObj.id || ticketObj.seatId || ticketObj.bookingId || null;
 
-    if (!ticketId) {
-      toast.error("Cannot find ticket to cancel.");
+    if (!tId && !ticketNo && !pathId) {
+      toast.error("Cannot find any ticket identifiers to cancel.");
       setIsCancelling(false);
       return;
     }
 
     try {
-        const endpoint = `${API_CONFIG.ENDPOINTS.CANCLE_TICKET}?email=${encodeURIComponent(
-          email
-        )}&ticketNo=${encodeURIComponent(ticketId)}`;
+      // 1) Preferred: delete ticket by ticket id tId -> DELETE /ticket/{tId}
+      if (tId) {
+        try {
+          const delResp = await ApiService.delete(`${API_CONFIG.ENDPOINTS.DELETE_TICKET}/${tId}`);
+          if (delResp && delResp.ok) {
+            toast.success("Ticket cancelled.");
+            localStorage.removeItem("seatRes");
+            localStorage.removeItem("selectedSeats");
+            localStorage.removeItem("bookingRes");
+            navigate("/");
+            setIsCancelling(false);
+            return;
+          }
+        } catch (delErr) {
+          console.warn('Delete by ticket id failed, will try older cancel flows', delErr);
+        }
+      }
 
-        const response = await ApiService.delete(endpoint);
+      // 2) Older flows: try POST to /tickets/seat/{id} with header ticketNo and body { email }
+      try {
+        if (pathId) {
+          const postResp = await ApiService.request(`${API_CONFIG.ENDPOINTS.CANCLE_TICKET}/${pathId}`, {
+            method: 'POST',
+            body: JSON.stringify({ email }),
+            headers: { ticketNo: String(ticketNo || tId) },
+          });
+          if (postResp && postResp.ok) {
+            toast.success("Ticket cancelled.");
+            localStorage.removeItem("seatRes");
+            localStorage.removeItem("selectedSeats");
+            localStorage.removeItem("bookingRes");
+            navigate("/");
+            setIsCancelling(false);
+            return;
+          }
+        }
+      } catch (postErr) {
+        console.warn('Cancel POST request failed, will try DELETE fallback', postErr);
+      }
 
-        if (response && response.ok) {
-          toast.success("Ticket cancelled.");
-          localStorage.removeItem("seatRes");
-          localStorage.removeItem("selectedSeats");
-          localStorage.removeItem("bookingRes");
-          navigate("/");
-        } else {
+      // 3) Fallback: old-style DELETE with query params on /tickets/seat
+      const endpoint = `${API_CONFIG.ENDPOINTS.CANCLE_TICKET}/${pathId ? pathId : ''}?email=${encodeURIComponent(
+        email
+      )}&ticketNo=${encodeURIComponent(ticketNo || tId || '')}`;
+
+      const response = await ApiService.delete(endpoint.replace(/\/\/?\?/, '?'));
+
+      if (response && response.ok) {
+        toast.success("Ticket cancelled.");
+        localStorage.removeItem("seatRes");
+        localStorage.removeItem("selectedSeats");
+        localStorage.removeItem("bookingRes");
+        navigate("/");
+      } else {
         // Try to extract a helpful error message from server
         let msg = "Failed to cancel ticket.";
         try {
