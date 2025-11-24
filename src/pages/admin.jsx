@@ -12,8 +12,10 @@ export function AdminPanel() {
 
   const [busStop, setBusStop] = useState("");
   const [busStops, setBusStops] = useState([]);
+  const [isCreatingStop, setIsCreatingStop] = useState(false);
   const [routeCityOne, setRouteCityOne] = useState("");
   const [routeCityTwo, setRouteCityTwo] = useState("");
+  const [isCreatingRoute, setIsCreatingRoute] = useState(false);
   const [busName, setBusName] = useState("");
   const [busRoute, setBusRoute] = useState("");
   const [busDate, setBusDate] = useState("");
@@ -21,8 +23,10 @@ export function AdminPanel() {
   const [basePrice, setBasePrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [busTime, setBusTime] = useState("");
+  const [isCreatingBus, setIsCreatingBus] = useState(false);
   const [seatNumber, setSeatNumber] = useState("");
   const [seatBusId, setSeatBusId] = useState("");
+  const [isCreatingSeat, setIsCreatingSeat] = useState(false);
   const [allBuses, setAllBuses] = useState([]);
 
   // Fetch bus stops, routes, and buses on component mount
@@ -71,27 +75,30 @@ export function AdminPanel() {
       toast.error("Bus Stop name cannot be empty!");
       return;
     }
-
+    setIsCreatingStop(true);
     try {
       const res = await ApiService.post(API_CONFIG.ENDPOINTS.CREATE_BUS_STOP, {
         name: busStop,
       });
 
-      if (res.ok) {
+      if (res && res.ok) {
         toast.success("Bus Stop created!");
         setBusStop("");
         getBusStops();
       } else {
-        if (res.status === 401) {
+        if (res && res.status === 401) {
           toast.error("Session timeout. Login again!");
           navigate("/admin/login");
         } else {
-          toast.error("Error while creating Bus Stop. Please Retry!");
+          const err = res ? await res.json().catch(() => ({})) : {};
+          toast.error(err.message || "Error while creating Bus Stop. Please Retry!");
         }
       }
     } catch (error) {
       console.error("Error creating bus stop:", error);
       toast.error("Failed to create bus stop");
+    } finally {
+      setIsCreatingStop(false);
     }
   }
   // Create a new route
@@ -100,32 +107,36 @@ export function AdminPanel() {
       toast.error("Fill both the routes!");
       return;
     }
-
+    setIsCreatingRoute(true);
     try {
-      const id = busStops.find((city) => city.name === routeCityOne).id;
-      const id1 = busStops.find((city) => city.name === routeCityTwo).id;
-      
+      const source = busStops.find((city) => city.name === routeCityOne);
+      const dest = busStops.find((city) => city.name === routeCityTwo);
+      if (!source || !dest) throw new Error("Selected cities are invalid");
+
       const res = await ApiService.post(
-        `${API_CONFIG.ENDPOINTS.CREATE_ROUTE}/${id}/${id1}`,
+        `${API_CONFIG.ENDPOINTS.CREATE_ROUTE}/${source.id}/${dest.id}`,
         {}
       );
 
-      if (res.ok) {
+      if (res && res.ok) {
         toast.success("New Route created!");
         setRouteCityOne("");
         setRouteCityTwo("");
         getAllRoutes();
       } else {
-        if (res.status === 401) {
+        if (res && res.status === 401) {
           toast.error("Session timeout. Login again!");
           navigate("/admin/login");
         } else {
-          toast.error("Error while creating new route. Please Retry!");
+          const err = res ? await res.json().catch(() => ({})) : {};
+          toast.error(err.message || "Error while creating new route. Please Retry!");
         }
       }
     } catch (error) {
       console.error("Error creating route:", error);
-      toast.error("Failed to create route");
+      toast.error(error.message || "Failed to create route");
+    } finally {
+      setIsCreatingRoute(false);
     }
   }
 
@@ -135,21 +146,20 @@ export function AdminPanel() {
       toast.error("All fields are required!");
       return;
     }
-
+    setIsCreatingBus(true);
     try {
-      const busRouteRes = await ApiService.post(
-        `${API_CONFIG.ENDPOINTS.CREATE_BUS}/${busRoute}`,
-        {
-          busName,
-          busType: "Deluxe",
-          departureDateTime: `${busDate}T${busTime}`,
-          date: busDate,
-          maxPrice,
-          basePrice,
-        }
-      );
+      const payload = {
+        busName,
+        busType: "Deluxe",
+        departureDateTime: `${busDate}T${busTime}`,
+        date: busDate,
+        maxPrice,
+        basePrice,
+      };
 
-      if (busRouteRes.ok) {
+      const busRouteRes = await ApiService.post(`${API_CONFIG.ENDPOINTS.CREATE_BUS}/${busRoute}`, payload);
+
+      if (busRouteRes && busRouteRes.ok) {
         toast.success("New Bus created!");
         setBusName("");
         setBusRoute("");
@@ -159,16 +169,19 @@ export function AdminPanel() {
         setBusTime("");
         getAllBuses();
       } else {
-        if (busRouteRes.status === 401) {
+        if (busRouteRes && busRouteRes.status === 401) {
           toast.error("Session timeout. Login again!");
           navigate("/admin/login");
         } else {
-          toast.error("Error while creating new bus. Please Retry!");
+          const err = busRouteRes ? await busRouteRes.json().catch(() => ({})) : {};
+          toast.error(err.message || "Error while creating new bus. Please Retry!");
         }
       }
     } catch (error) {
       console.error("Error creating bus:", error);
       toast.error("Failed to create bus");
+    } finally {
+      setIsCreatingBus(false);
     }
   }
 
@@ -180,30 +193,31 @@ export function AdminPanel() {
     }
 
     try {
-      const seatRes = await ApiService.post(
-        `${API_CONFIG.ENDPOINTS.CREATE_SEAT}/${seatBusId}`,
-        {
+        setIsCreatingSeat(true);
+        const seatRes = await ApiService.post(`${API_CONFIG.ENDPOINTS.CREATE_SEAT}/${seatBusId}`, {
           seatNumber,
           reserved: false,
-        }
-      );
+        });
 
-      if (seatRes.ok) {
-        toast.success("New Seat added!");
-        setSeatNumber("");
-        setSeatBusId("");
-        getAllBuses();
-      } else {
-        if (seatRes.status === 401) {
-          toast.error("Session timeout. Login again!");
-          navigate("/admin/login");
+        if (seatRes && seatRes.ok) {
+          toast.success("New Seat added!");
+          setSeatNumber("");
+          setSeatBusId("");
+          getAllBuses();
         } else {
-          toast.error("Error while creating new seat. Please Retry!");
+          if (seatRes && seatRes.status === 401) {
+            toast.error("Session timeout. Login again!");
+            navigate("/admin/login");
+          } else {
+            const err = seatRes ? await seatRes.json().catch(() => ({})) : {};
+            toast.error(err.message || "Error while creating new seat. Please Retry!");
+          }
         }
-      }
     } catch (error) {
       console.error("Error creating seat:", error);
       toast.error("Failed to create seat");
+      } finally {
+        setIsCreatingSeat(false);
     }
   }
 
@@ -215,21 +229,23 @@ export function AdminPanel() {
         <h1 className="text-3xl font-bold text-gray-800 mb-8">Admin Panel</h1>
 
         {/* Create New Bus Stop */}
-        <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">Create New Bus Stop</h2>
+        <div className="bg-white p-6 rounded-lg shadow-md mb-6 border-l-4 border-blue-500">
+          <h2 className="text-xl font-semibold text-gray-700 mb-1">Create New Bus Stop</h2>
+          <p className="text-sm text-gray-500 mb-4">Add a new city or stop where buses will operate.</p>
           <div className="flex gap-4">
             <input
               type="text"
               placeholder="Name of Bus Stop (e.g., Kathmandu)"
               value={busStop}
               onChange={(e) => setBusStop(e.target.value)}
-              className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
             <button
               onClick={createBusStop}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              disabled={isCreatingStop}
+              className={`bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors ${isCreatingStop ? 'opacity-80 cursor-not-allowed' : 'hover:bg-blue-700'}`}
             >
-              Create
+              {isCreatingStop ? 'Creating...' : 'Create'}
             </button>
           </div>
         </div>
@@ -237,8 +253,9 @@ export function AdminPanel() {
         {/* Create New Route */}
         {busStops.length > 0 && (
           <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Create New Route</h2>
-            <div className="flex gap-4">
+            <h2 className="text-xl font-semibold text-gray-700 mb-1">Create New Route</h2>
+            <p className="text-sm text-gray-500 mb-3">Connect two bus stops to form a route.</p>
+            <div className="flex gap-4 items-center">
               <select
                 value={routeCityOne}
                 onChange={(e) => setRouteCityOne(e.target.value)}
@@ -265,9 +282,10 @@ export function AdminPanel() {
               </select>
               <button
                 onClick={createRoute}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                disabled={isCreatingRoute}
+                className={`bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors ${isCreatingRoute ? 'opacity-80 cursor-not-allowed' : 'hover:bg-blue-700'}`}
               >
-                Create
+                {isCreatingRoute ? 'Creating...' : 'Create'}
               </button>
             </div>
           </div>
@@ -276,8 +294,9 @@ export function AdminPanel() {
         {/* Create New Bus */}
         {allRoutes.length > 0 && (
           <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Create New Bus</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <h2 className="text-xl font-semibold text-gray-700 mb-1">Create New Bus</h2>
+            <p className="text-sm text-gray-500 mb-3">Add a scheduled bus for a selected route.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
               <input
                 type="text"
                 placeholder="Bus Name"
@@ -326,9 +345,10 @@ export function AdminPanel() {
               />
               <button
                 onClick={createNewBus}
-                className="col-span-full bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                disabled={isCreatingBus}
+                className={`col-span-full bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors ${isCreatingBus ? 'opacity-80 cursor-not-allowed' : 'hover:bg-blue-700'}`}
               >
-                Create Bus
+                {isCreatingBus ? 'Creating Bus...' : 'Create Bus'}
               </button>
             </div>
           </div>
@@ -337,19 +357,20 @@ export function AdminPanel() {
         {/* Create New Seat */}
         {allBuses.length > 0 && (
           <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Create New Seat</h2>
-            <div className="flex gap-4">
+            <h2 className="text-xl font-semibold text-gray-700 mb-1">Create New Seat</h2>
+            <p className="text-sm text-gray-500 mb-3">Add individual seats to a bus.</p>
+            <div className="flex gap-4 items-center">
               <input
                 type="text"
                 placeholder="Seat Number (e.g., A12)"
                 value={seatNumber}
                 onChange={(e) => setSeatNumber(e.target.value)}
-                className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
               <select
                 value={seatBusId}
                 onChange={(e) => setSeatBusId(e.target.value)}
-                className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               >
                 <option value="">Select Bus</option>
                 {allBuses.map((bus) => (
@@ -360,9 +381,10 @@ export function AdminPanel() {
               </select>
               <button
                 onClick={createNewSeat}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                disabled={isCreatingSeat}
+                className={`bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors ${isCreatingSeat ? 'opacity-80 cursor-not-allowed' : 'hover:bg-blue-700'}`}
               >
-                Create Seat
+                {isCreatingSeat ? 'Adding...' : 'Create Seat'}
               </button>
             </div>
           </div>
