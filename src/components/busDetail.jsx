@@ -1,5 +1,5 @@
+import React, { useContext } from "react";
 import PropTypes from "prop-types";
-import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import SelectedBusContext from "../context/selectedbus";
 
@@ -11,45 +11,79 @@ const handleClick = () => {
   // safely get existing bus list details
   const stored = JSON.parse(localStorage.getItem("busListDetails")) || { busList: [] };
 
-  // save selected bus
+  // save selected bus (keep existing structure)
   const newData = {
     ...stored,
-    selectedBus: bus, // make sure this bus object includes seats and route12
+    selectedBus: bus,
   };
 
-  localStorage.setItem("busListDetails", JSON.stringify(newData));
-  setSelectedBus(bus); // update context
+  try {
+    localStorage.setItem("busListDetails", JSON.stringify(newData));
+  } catch (err) {
+    // ignore localStorage errors in older browsers
+    console.warn("Could not persist selected bus:", err);
+  }
+
+  setSelectedBus(bus);
   navigate("/ticket-details");
 };
 
 
+  const departure = bus?.departureDateTime ? new Date(bus.departureDateTime) : null;
+  const departureDate = departure ? departure.toLocaleDateString() : "TBD";
+  const departureTime = departure ? departure.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "TBD";
+
+  // compute available seats if seats array exists
+  const seats = Array.isArray(bus?.seats) ? bus.seats : [];
+  const availableSeats = seats.filter((s) => !s.reserved).length;
+
   return (
-    <div
-      className="bus-detail bg-white rounded-lg shadow-md p-6 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105 border border-gray-100"
-      onClick={handleClick} // optional: keep div click also navigates
+    <article
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => (e.key === "Enter" ? handleClick() : null)}
+      className="bus-detail bg-white rounded-lg shadow-md p-6 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-102 border border-gray-100"
+      onClick={handleClick}
     >
-      <div className="flex justify-between items-center mb-4">
-        <p className="bus-name text-xl font-bold text-gray-800">{bus.busName}</p>
-        <p className="bus-type text-sm text-gray-600 bg-blue-50 px-3 py-1 rounded-full">{bus.busType}</p>
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <h3 className="bus-name text-lg md:text-xl font-bold text-gray-800">{bus?.busName || 'Unnamed Bus'}</h3>
+          <p className="text-sm text-gray-500 mt-1">{bus?.busType || 'Standard'}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-sm text-gray-500">Departs</p>
+          <p className="text-sm font-semibold text-gray-700">{departureDate}</p>
+          <p className="text-lg font-bold text-blue-600">{departureTime}</p>
+        </div>
       </div>
 
-      <div className="flex justify-between items-center mb-4">
-        <p className="bus-departure-time text-lg font-semibold text-gray-700">
-          Departure:{" "}
-          <span className="text-blue-600">{new Date(bus.departureDateTime).toLocaleTimeString()}</span>
-        </p>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <p className="text-sm text-gray-500">Route</p>
+          <p className="text-base font-medium text-gray-800">{bus?.routeName || bus?.route || 'Route info'}</p>
+        </div>
+
+        <div className="text-right">
+          <p className="text-sm text-gray-500">Available seats</p>
+          <p className="text-base font-medium text-gray-800">{availableSeats}</p>
+        </div>
       </div>
 
-      <div className="flex justify-between items-center">
-        <p className="bus-price text-xl font-bold text-green-600">Rs. {bus.basePrice ?? 0}/-</p>
+      <div className="flex items-center justify-between">
+        <p className="bus-price text-xl font-bold text-green-600">Rs. {(bus?.basePrice ?? 0).toLocaleString()}/-</p>
         <button
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200"
-          onClick={handleClick}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all duration-200"
+          onClick={(e) => {
+            // prevent the div's onClick from firing twice
+            e.stopPropagation();
+            handleClick();
+          }}
+          aria-label={`Book ${bus?.busName || 'bus'}`}
         >
-          Book Now
+          Book
         </button>
       </div>
-    </div>
+    </article>
   );
 };
 
