@@ -1,51 +1,100 @@
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import React, { useState } from "react";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 
 const NavigationBar = () => {
-  const [page, setPage] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
-  const pageUrl = location.pathname;
+  const pageUrl = location.pathname || "/";
+  const token = localStorage.getItem("token");
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const isAdminPath = pageUrl.startsWith("/admin");
+
+  function handleLogout() {
+    localStorage.removeItem("token");
+    setMenuOpen(false);
+    navigate("/");
+  }
 
   return (
-    <div className="flex justify-between items-center px-10 py-4 bg-gradient-to-r from-cyan-800 to-cyan-950 text-white fixed w-full top-0 left-0 z-50 shadow-lg">
-      <div className="logo flex items-center">
-        {/* <img src="./bus.svg" alt="Logo" className="h-8 mr-2" /> */}
-        <p className="text-2xl font-bold text-white">TicketKatum</p>
+    <nav className="bg-gradient-to-r from-cyan-800 to-cyan-950 text-white fixed w-full top-0 left-0 z-50 shadow-lg">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate("/")}
+              aria-label="Home"
+              className="flex items-center gap-2 focus:outline-none"
+            >
+              <div className="w-8 h-8 rounded-md bg-white/10 flex items-center justify-center">
+                {/* small bus glyph (text) */}
+                <span className="font-bold">TK</span>
+              </div>
+              <span className="text-xl font-bold">TicketKatum</span>
+            </button>
+          </div>
+
+          <div className="hidden md:flex items-center space-x-4">
+            <Link
+              to="/"
+              className={`px-4 py-2 rounded-lg font-semibold transition ${pageUrl === "/" ? 'bg-white text-cyan-900' : 'bg-white/10 hover:bg-white/20'}`}
+            >
+              Home
+            </Link>
+
+            {!isAdminPath && !token && (
+              <Link
+                to="/admin/login"
+                className="px-4 py-2 bg-white text-cyan-900 rounded-lg hover:bg-white/90 font-semibold transition"
+              >
+                Admin Login
+              </Link>
+            )}
+
+            {isAdminPath && token && (
+              <button onClick={handleLogout} className="px-4 py-2 bg-red-600 rounded-lg hover:bg-red-700 font-semibold">
+                Admin Logout
+              </button>
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden flex items-center">
+            <button
+              onClick={() => setMenuOpen((s) => !s)}
+              aria-expanded={menuOpen}
+              aria-label="Toggle navigation"
+              className="p-2 rounded-md bg-white/10"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={menuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'} />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="nav-buttons flex space-x-4">
-        {!pageUrl.includes("admin/panel") && (
-          <button
-            onClick={() => setPage("admin")}
-            className="px-4 py-2 bg-white text-cyan-800 rounded-lg hover:bg-cyan-100 transition-all duration-300 font-semibold shadow-md"
-          >
-            Admin Login
-          </button>
-        )}
-        {pageUrl.includes("admin/panel") && (
-          <button
-            onClick={() => {
-              localStorage.removeItem("token");
-              navigate("/");
-            }}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-300 font-semibold shadow-md"
-          >
-            Admin Logout
-          </button>
-        )}
-        <button
-          onClick={() => setPage("homepage")}
-          className="px-4 py-2 bg-white text-cyan-800 rounded-lg hover:bg-cyan-100 transition-all duration-300 font-semibold shadow-md"
-        >
-          HomePage
-        </button>
-      </div>
-
-      {/* Navigate based on page state */}
-      {page === "admin" && <Navigate to="/admin/login" />}
-      {page === "homepage" && <Navigate to="/" />}
-    </div>
+      {/* Mobile menu panel */}
+      {menuOpen && (
+        <div className="md:hidden bg-cyan-900/95 border-t border-white/10">
+          <div className="px-4 pt-2 pb-4 space-y-2">
+            <Link to="/" onClick={() => setMenuOpen(false)} className={`block px-3 py-2 rounded-md ${pageUrl === '/' ? 'bg-white text-cyan-900' : 'text-white hover:bg-white/10'}`}>
+              Home
+            </Link>
+            {!isAdminPath && !token && (
+              <Link to="/admin/login" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded-md text-white hover:bg-white/10">
+                Admin Login
+              </Link>
+            )}
+            {isAdminPath && token && (
+              <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="w-full text-left px-3 py-2 rounded-md text-white hover:bg-white/10">
+                Admin Logout
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </nav>
   );
 };
 
