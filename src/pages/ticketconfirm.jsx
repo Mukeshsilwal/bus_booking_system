@@ -124,7 +124,7 @@ const TicketConfirmed = () => {
               <button
                 onClick={cancelTicket}
                 disabled={isCancelling}
-                className={`px-4 py-2 rounded shadow ${isCancelling ? 'bg-red-400 text-white cursor-not-allowed' : 'bg-red-600 text-white hover:bg-red-700'}`}\
+                className={`px-4 py-2 rounded shadow ${isCancelling ? 'bg-red-400 text-white cursor-not-allowed' : 'bg-red-600 text-white hover:bg-red-700'}`}
               >
                 {isCancelling ? 'Cancelling...' : 'Cancel Ticket'}
               </button>
