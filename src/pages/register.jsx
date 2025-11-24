@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useFormik } from "formik";
@@ -8,6 +8,9 @@ import ApiService from "../services/api.service";
 
 export default function Register() {
   const navigate = useNavigate();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const initialValues = {
     email: "",
@@ -19,23 +22,27 @@ export default function Register() {
       initialValues,
       validationSchema: loginRegisterValidation,
       onSubmit: async (values, action) => {
+        setIsLoading(true);
         try {
           const response = await ApiService.post(API_CONFIG.ENDPOINTS.SIGNUP, values);
-          
-          if (response.ok) {
+
+          if (response && response.ok) {
             toast.success("User signup successful!");
             action.resetForm();
-            
+
             setTimeout(() => {
               navigate("/admin/login", { replace: true });
-            }, 1500);
+            }, 1200);
           } else {
-            const errorData = await response.json();
+            const errorData = await response.json().catch(() => ({}));
             toast.error(errorData.message || "Signup failed. Please try again.");
           }
         } catch (error) {
           console.error(error);
           toast.error("An error occurred during signup.");
+        } finally {
+          setIsLoading(false);
+          if (action && action.setSubmitting) action.setSubmitting(false);
         }
       },
     });
@@ -88,16 +95,26 @@ export default function Register() {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
               </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={values.password}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                autoComplete="off"
-                className="mt-1 p-3 w-full border border-gray-300 rounded-md focus:border-purple-500 focus:ring-2 focus:ring-purple-500 transition-colors duration-300 shadow-sm hover:shadow-md"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={values.password}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  autoComplete="off"
+                  className="mt-1 p-3 w-full border border-gray-300 rounded-md focus:border-purple-500 focus:ring-2 focus:ring-purple-500 transition-colors duration-300 shadow-sm hover:shadow-md"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-600 hover:text-gray-800"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
               {errors.password && touched.password && (
                 <span className="block font-light text-red-500 mt-1 text-sm">
                   {errors.password}
@@ -107,9 +124,10 @@ export default function Register() {
             <div>
               <button
                 type="submit"
-                className="w-full bg-purple-600 text-white p-2 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-300 transition-colors duration-300 shadow-md hover:shadow-lg"
+                disabled={isLoading}
+                className={`w-full bg-purple-600 text-white p-3 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-300 transition-colors duration-300 shadow-md hover:shadow-lg ${isLoading ? 'opacity-80 cursor-not-allowed' : ''}`}
               >
-                Sign Up
+                {isLoading ? 'Creating account...' : 'Sign Up'}
               </button>
             </div>
           </form>
