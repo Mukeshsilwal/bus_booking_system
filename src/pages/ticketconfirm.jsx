@@ -18,7 +18,6 @@ const TicketConfirmed = () => {
     return () => {
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function fetchPdf() {
