@@ -82,7 +82,7 @@ const TicketConfirmed = () => {
       // Try POST first (many servers expect JSON body for actions like cancel)
       try {
         // Backend expects ticket number in header and email in JSON body
-        const postResp = await ApiService.request(`/bookSeats/cancel/${ticketId}`, {
+        const postResp = await ApiService.request(`/bookSeats/cancel`, {
           method: 'POST',
           body: JSON.stringify({ email, ticketNo: ticketId }),
         });
