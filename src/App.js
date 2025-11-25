@@ -10,7 +10,7 @@ import BusList from "./pages/BusList";
 import TicketDetails from "./pages/ticketDetails";
 import ErrorPage from "./pages/error-page";
 import TicketConfirmed from "./pages/ticketconfirm";
-import { AdminPanel } from "./pages/admin";
+import AdminPanel from "./pages/admin";
 
 function App() {
   return (
