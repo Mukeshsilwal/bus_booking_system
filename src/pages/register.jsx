@@ -43,9 +43,92 @@ const CheckIcon = () => (
   </svg>
 );
 
+// Components defined OUTSIDE the main component to prevent re-rendering issues
+const FileUploadField = ({ id, label, error, touched, onChange, value }) => (
+  <div className="w-full">
+    <label className="block text-sm font-medium text-slate-700 mb-2">
+      {label}
+    </label>
+    <div className={`relative border-2 border-dashed rounded-xl p-6 transition-all duration-200 ease-in-out
+      ${error && touched
+        ? 'border-red-300 bg-red-50'
+        : value
+          ? 'border-green-300 bg-green-50'
+          : 'border-slate-300 hover:border-indigo-400 hover:bg-slate-50'
+      }
+    `}>
+      <input
+        id={id}
+        type="file"
+        accept="image/*"
+        onChange={onChange}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+      />
+      <div className="flex flex-col items-center justify-center text-center">
+        {value ? (
+          <>
+            <CheckIcon />
+            <p className="mt-2 text-sm font-medium text-green-700 truncate max-w-[200px]">
+              {value.name}
+            </p>
+            <p className="text-xs text-green-600">Click to change</p>
+          </>
+        ) : (
+          <>
+            <UploadIcon />
+            <p className="text-sm font-medium text-slate-700">
+              <span className="text-indigo-600">Upload a file</span> or drag and drop
+            </p>
+            <p className="text-xs text-slate-500 mt-1">PNG, JPG up to 5MB</p>
+          </>
+        )}
+      </div>
+    </div>
+    {error && touched && (
+      <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {error}
+      </p>
+    )}
+  </div>
+);
+
+const InputField = ({ id, type, label, icon: Icon, placeholder, ...props }) => (
+  <div>
+    <label htmlFor={id} className="block text-sm font-medium text-slate-700 mb-1">
+      {label}
+    </label>
+    <div className="relative">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <Icon />
+      </div>
+      <input
+        id={id}
+        type={type}
+        className={`input-field pl-10 transition-all duration-200
+          ${props.error && props.touched
+            ? 'border-red-300 focus:ring-red-200 focus:border-red-500'
+            : 'focus:ring-indigo-200 focus:border-indigo-500'
+          }`}
+        placeholder={placeholder}
+        {...props}
+      />
+    </div>
+    {props.error && props.touched && (
+      <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {props.error}
+      </p>
+    )}
+  </div>
+);
+
 export default function Register() {
   const navigate = useNavigate();
-
   const [isLoading, setIsLoading] = useState(false);
 
   const initialValues = {
@@ -72,11 +155,7 @@ export default function Register() {
           formData.append("frontImage", values.frontImage);
           formData.append("backImage", values.backImage);
 
-          const response = await ApiService.post(API_CONFIG.ENDPOINTS.ADMIN_REGISTER, formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
+          const response = await ApiService.post(API_CONFIG.ENDPOINTS.ADMIN_REGISTER, formData);
 
           if (response && response.ok) {
             toast.success("Registration successful! Please wait for admin approval.");
@@ -107,89 +186,6 @@ export default function Register() {
     const file = event.currentTarget.files[0];
     setFieldValue(fieldName, file);
   };
-
-  const FileUploadField = ({ id, label, error, touched, onChange, value }) => (
-    <div className="w-full">
-      <label className="block text-sm font-medium text-slate-700 mb-2">
-        {label}
-      </label>
-      <div className={`relative border-2 border-dashed rounded-xl p-6 transition-all duration-200 ease-in-out
-        ${error && touched
-          ? 'border-red-300 bg-red-50'
-          : value
-            ? 'border-green-300 bg-green-50'
-            : 'border-slate-300 hover:border-indigo-400 hover:bg-slate-50'
-        }
-      `}>
-        <input
-          id={id}
-          type="file"
-          accept="image/*"
-          onChange={onChange}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-        />
-        <div className="flex flex-col items-center justify-center text-center">
-          {value ? (
-            <>
-              <CheckIcon />
-              <p className="mt-2 text-sm font-medium text-green-700 truncate max-w-[200px]">
-                {value.name}
-              </p>
-              <p className="text-xs text-green-600">Click to change</p>
-            </>
-          ) : (
-            <>
-              <UploadIcon />
-              <p className="text-sm font-medium text-slate-700">
-                <span className="text-indigo-600">Upload a file</span> or drag and drop
-              </p>
-              <p className="text-xs text-slate-500 mt-1">PNG, JPG up to 5MB</p>
-            </>
-          )}
-        </div>
-      </div>
-      {error && touched && (
-        <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          {error}
-        </p>
-      )}
-    </div>
-  );
-
-  const InputField = ({ id, type, label, icon: Icon, placeholder, ...props }) => (
-    <div>
-      <label htmlFor={id} className="block text-sm font-medium text-slate-700 mb-1">
-        {label}
-      </label>
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Icon />
-        </div>
-        <input
-          id={id}
-          type={type}
-          className={`input-field pl-10 transition-all duration-200
-            ${props.error && props.touched
-              ? 'border-red-300 focus:ring-red-200 focus:border-red-500'
-              : 'focus:ring-indigo-200 focus:border-indigo-500'
-            }`}
-          placeholder={placeholder}
-          {...props}
-        />
-      </div>
-      {props.error && props.touched && (
-        <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          {props.error}
-        </p>
-      )}
-    </div>
-  );
 
   return (
     <div className="min-h-screen flex bg-slate-50 font-sans">
