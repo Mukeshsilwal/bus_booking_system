@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import SelectedBusContext from "../context/selectedbus";
 import busIcon from "../assets/bus.svg";
+import { SeatIcon } from "./SeatIcon";
 
 const BusDetail = ({ bus }) => {
   const navigate = useNavigate();
@@ -168,11 +169,11 @@ const BusDetail = ({ bus }) => {
               <h4 className="text-sm font-semibold text-slate-900">Seat Layout</h4>
               <div className="flex gap-4 text-xs">
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded bg-white border border-slate-300"></div>
+                  <SeatIcon status="available" className="w-4 h-4" />
                   <span className="text-slate-600">Available</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded bg-slate-100 border border-slate-200"></div>
+                  <SeatIcon status="booked" className="w-4 h-4" />
                   <span className="text-slate-400">Booked</span>
                 </div>
               </div>
@@ -181,19 +182,16 @@ const BusDetail = ({ bus }) => {
             <div className="bg-slate-50 p-4 rounded-lg overflow-x-auto">
               <div className="grid gap-2 min-w-max mx-auto" style={{ gridTemplateColumns: `repeat(${seatPreview.cols}, minmax(40px, 1fr))` }}>
                 {seatPreview.grid.flat().map((seat, idx) => (
-                  <div
-                    key={idx}
-                    className={`
-                      aspect-square rounded flex items-center justify-center text-xs font-medium transition-colors
-                      ${seat
-                        ? (seat.reserved
-                          ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                          : 'bg-white border border-indigo-200 text-indigo-600 shadow-sm')
-                        : 'invisible'
-                      }
-                    `}
-                  >
-                    {seat?.seatNumber || ''}
+                  <div key={idx} className="aspect-square flex items-center justify-center">
+                    {seat ? (
+                      <SeatIcon
+                        status={seat.reserved ? 'booked' : 'available'}
+                        seatNumber={seat.seatNumber}
+                        className="w-8 h-8"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 invisible" />
+                    )}
                   </div>
                 ))}
               </div>

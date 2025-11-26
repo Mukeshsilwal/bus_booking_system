@@ -5,6 +5,7 @@ import API_CONFIG from "../config/api";
 import ApiService from "../services/api.service";
 import { toast } from "react-toastify";
 import Footer from "../components/Footer";
+import { SeatIcon } from "../components/SeatIcon";
 import "./SeatSelection.css";
 
 export default function TicketDetails() {
@@ -269,28 +270,21 @@ export default function TicketDetails() {
                       const isSelected = selectedSeats.includes(seat.seatNumber);
 
                       return (
-                        <div
-                          key={seat.id}
-                          className={`
-                            relative aspect-square rounded-lg flex items-center justify-center text-sm font-medium cursor-pointer transition-all duration-200
-                            ${reserved
-                              ? "bg-red-100 text-red-400 cursor-not-allowed border border-red-200"
-                              : isSelected
-                                ? "bg-indigo-600 text-white shadow-md scale-105 border border-indigo-600"
-                                : "bg-white text-slate-600 border border-slate-300 hover:border-indigo-400 hover:shadow-sm"
-                            }
-                          `}
-                          onClick={() => {
-                            if (reserved || isBooking) return;
-                            setSelectedSeats((prev) =>
-                              prev.includes(seat.seatNumber)
-                                ? prev.filter((s) => s !== seat.seatNumber)
-                                : [...prev, seat.seatNumber]
-                            );
-                          }}
-                        >
-                          {seat.seatNumber}
-                          {!reserved && <div className="absolute -bottom-6 text-[10px] text-slate-500 font-normal hidden sm:block">Rs.{seat.price}</div>}
+                        <div key={seat.id} className="aspect-square flex items-center justify-center">
+                          <SeatIcon
+                            status={reserved ? 'booked' : isSelected ? 'selected' : 'available'}
+                            seatNumber={seat.seatNumber}
+                            price={seat.price}
+                            className="w-12 h-12"
+                            onClick={() => {
+                              if (reserved || isBooking) return;
+                              setSelectedSeats((prev) =>
+                                prev.includes(seat.seatNumber)
+                                  ? prev.filter((s) => s !== seat.seatNumber)
+                                  : [...prev, seat.seatNumber]
+                              );
+                            }}
+                          />
                         </div>
                       );
                     })}
@@ -298,15 +292,15 @@ export default function TicketDetails() {
 
                   <div className="flex justify-center gap-6 mt-8 text-sm">
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded bg-white border border-slate-300"></div>
+                      <SeatIcon status="available" className="w-5 h-5" />
                       <span className="text-slate-600">Available</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded bg-red-100 border border-red-200"></div>
+                      <SeatIcon status="booked" className="w-5 h-5" />
                       <span className="text-slate-600">Booked</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded bg-indigo-600 border border-indigo-600"></div>
+                      <SeatIcon status="selected" className="w-5 h-5" />
                       <span className="text-slate-600">Selected</span>
                     </div>
                   </div>
