@@ -30,7 +30,7 @@ const API_CONFIG = {
 
     // Booking endpoints
     CREATE_BOOKING: '/booking/post',
-    GET_ALL_BOOKINGS: '/booking/getAll',
+    GET_ALL_BOOKINGS: '/booking/get',
 
     // Ticket endpoints
     BOOK_TICKET: '/tickets/seat',
