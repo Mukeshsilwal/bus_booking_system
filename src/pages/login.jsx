@@ -25,7 +25,7 @@ export default function Login() {
     setIsLoading(true);
     try {
       const loginRes = await apiService.post(API_CONFIG.ENDPOINTS.LOGIN, {
-        email: trimmedEmail,
+        username: trimmedEmail,
         password,
       });
 
