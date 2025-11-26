@@ -4,7 +4,8 @@ import SelectedBusContext from "../context/selectedbus";
 import API_CONFIG from "../config/api";
 import ApiService from "../services/api.service";
 import { toast } from "react-toastify";
-import  "./SeatSelection.css";
+import Footer from "../components/Footer";
+import "./SeatSelection.css";
 
 export default function TicketDetails() {
   const { selectedBus } = useContext(SelectedBusContext);
@@ -201,98 +202,177 @@ export default function TicketDetails() {
   }
 
   return (
-    <div className="ticket-details-container">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       <NavigationBar />
 
-      <div className="all-details">
-        <div className="left-details">
-          <h2>Passenger Details</h2>
+      <main className="flex-grow pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+        <h1 className="text-3xl font-bold text-slate-900 mb-8">Complete Your Booking</h1>
 
-          <div className="passenger-details">
-            <div className="passenger-details-item">
-              <label>Passenger Name</label>
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left Column: Passenger & Seats */}
+          <div className="flex-1 space-y-8">
+            {/* Passenger Details */}
+            <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <h2 className="text-xl font-semibold text-slate-900 mb-6 flex items-center gap-2">
+                <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm">1</span>
+                Passenger Details
+              </h2>
 
-            <div className="passenger-details-item">
-              <label>Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Full Name</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="input-field"
+                    placeholder="John Doe"
+                  />
+                </div>
 
-            <div className="passenger-details-item">
-              <label>Contact</label>
-              <input type="tel" value={contact} onChange={(e) => setContact(e.target.value)} />
-            </div>
-          </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="input-field"
+                    placeholder="john@example.com"
+                  />
+                </div>
 
-          <h2>Select Seats</h2>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Contact Number</label>
+                  <input
+                    type="tel"
+                    value={contact}
+                    onChange={(e) => setContact(e.target.value)}
+                    className="input-field"
+                    placeholder="+977 9800000000"
+                  />
+                </div>
+              </div>
+            </section>
 
-          <div className="seat-selection-div">
-            <div className="seat-selection">
-              {selectedBus?.seats?.map((seat) => {
-                const reserved = isSeatReserved(seat);
-                const isSelected = selectedSeats.includes(seat.seatNumber);
+            {/* Seat Selection */}
+            <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <h2 className="text-xl font-semibold text-slate-900 mb-6 flex items-center gap-2">
+                <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm">2</span>
+                Select Seats
+              </h2>
 
-                return (
-                  <div
-                    key={seat.id}
-                    className={`seat 
-                      ${reserved ? "booked" : "available"} 
-                      ${isSelected ? "selected" : ""}
-                    `}
-                    onClick={() => {
-                      if (reserved || isBooking) return;
-                      setSelectedSeats((prev) =>
-                        prev.includes(seat.seatNumber)
-                          ? prev.filter((s) => s !== seat.seatNumber)
-                          : [...prev, seat.seatNumber]
+              <div className="flex flex-col items-center">
+                <div className="seat-selection-div w-full max-w-md">
+                  <div className="seat-selection grid grid-cols-4 gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                    {selectedBus?.seats?.map((seat) => {
+                      const reserved = isSeatReserved(seat);
+                      const isSelected = selectedSeats.includes(seat.seatNumber);
+
+                      return (
+                        <div
+                          key={seat.id}
+                          className={`
+                            relative aspect-square rounded-lg flex items-center justify-center text-sm font-medium cursor-pointer transition-all duration-200
+                            ${reserved
+                              ? "bg-red-100 text-red-400 cursor-not-allowed border border-red-200"
+                              : isSelected
+                                ? "bg-indigo-600 text-white shadow-md scale-105 border border-indigo-600"
+                                : "bg-white text-slate-600 border border-slate-300 hover:border-indigo-400 hover:shadow-sm"
+                            }
+                          `}
+                          onClick={() => {
+                            if (reserved || isBooking) return;
+                            setSelectedSeats((prev) =>
+                              prev.includes(seat.seatNumber)
+                                ? prev.filter((s) => s !== seat.seatNumber)
+                                : [...prev, seat.seatNumber]
+                            );
+                          }}
+                        >
+                          {seat.seatNumber}
+                          {!reserved && <div className="absolute -bottom-6 text-[10px] text-slate-500 font-normal hidden sm:block">Rs.{seat.price}</div>}
+                        </div>
                       );
-                    }}
-                  >
-                    {seat.seatNumber}
-                    {!reserved && <div>{seat.price}</div>}
+                    })}
                   </div>
-                );
-              })}
+
+                  <div className="flex justify-center gap-6 mt-8 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded bg-white border border-slate-300"></div>
+                      <span className="text-slate-600">Available</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded bg-red-100 border border-red-200"></div>
+                      <span className="text-slate-600">Booked</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded bg-indigo-600 border border-indigo-600"></div>
+                      <span className="text-slate-600">Selected</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          {/* Right Column: Summary */}
+          <div className="lg:w-96 flex-shrink-0">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sticky top-24">
+              <h2 className="text-lg font-bold text-slate-900 mb-4">Booking Summary</h2>
+
+              <div className="space-y-4 text-sm">
+                <div className="pb-4 border-b border-slate-100">
+                  <p className="text-slate-500 mb-1">Bus Operator</p>
+                  <p className="font-medium text-slate-900">{selectedBus?.busName || 'Standard Bus'}</p>
+                </div>
+
+                <div className="pb-4 border-b border-slate-100">
+                  <p className="text-slate-500 mb-1">Route</p>
+                  <div className="flex items-center gap-2 font-medium text-slate-900">
+                    <span>{selectedBus?.route12?.sourceBusStop?.name || 'Source'}</span>
+                    <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                    <span>{selectedBus?.route12?.destinationBusStop?.name || 'Destination'}</span>
+                  </div>
+                </div>
+
+                <div className="pb-4 border-b border-slate-100">
+                  <p className="text-slate-500 mb-1">Departure</p>
+                  <p className="font-medium text-slate-900">
+                    {selectedBus?.departureDateTime ? new Date(selectedBus.departureDateTime).toLocaleString() : "TBD"}
+                  </p>
+                </div>
+
+                <div className="pb-4 border-b border-slate-100">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-slate-600">Selected Seats ({selectedSeats.length})</span>
+                    <span className="font-medium text-slate-900">{selectedSeats.join(", ") || '-'}</span>
+                  </div>
+                  <div className="flex justify-between text-lg font-bold text-slate-900 mt-2">
+                    <span>Total Amount</span>
+                    <span className="text-indigo-600">NPR {totalCost}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={bookTicket}
+                  disabled={isBooking || selectedSeats.length === 0}
+                  className={`w-full btn-primary py-3 font-bold text-lg shadow-md hover:shadow-lg transform transition-all active:scale-95 ${isBooking || selectedSeats.length === 0 ? 'opacity-60 cursor-not-allowed' : ''}`}
+                >
+                  {isBooking ? 'Processing...' : 'Pay with eSewa'}
+                </button>
+
+                <p className="text-xs text-center text-slate-500 mt-4">
+                  By clicking Pay, you agree to our Terms & Conditions
+                </p>
+              </div>
             </div>
-
-            <div className="seat-info">
-              <label>Available</label>
-              <div className="seat available"></div>
-
-              <label>Booked</label>
-              <div className="seat booked"></div>
-
-              <label>Selected</label>
-              <div className="seat selected"></div>
-            </div>
-          </div>
-
-                  <button onClick={bookTicket} disabled={isBooking} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-60">
-                    {isBooking ? 'Processing...' : 'Pay with eSewa'}
-                  </button>
-        </div>
-
-        <div className="right-details">
-          <h2>Route Details</h2>
-
-          <div className="route-details">
-            <p>
-              Route: {selectedBus.route12?.sourceBusStop?.name} →{" "}
-              {selectedBus.route12?.destinationBusStop?.name}
-            </p>
-            <p>Date: {selectedBus?.departureDateTime ? new Date(selectedBus.departureDateTime).toLocaleString() : "-"}</p>
-            <p>Seats: {selectedSeats.join(", ")}</p>
-            <p>Bus: {selectedBus.busName}</p>
-          </div>
-
-          <h2>Payment Details</h2>
-          <div className="payment-details">
-            <p>Total Cost: NPR {totalCost}</p>
-            <p>Selected Seats: {selectedSeats.length}</p>
           </div>
         </div>
-      </div>
+      </main>
+
+      <Footer />
     </div>
   );
 }

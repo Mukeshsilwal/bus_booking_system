@@ -8,39 +8,32 @@ const BusDetail = ({ bus }) => {
   const navigate = useNavigate();
   const { setSelectedBus } = useContext(SelectedBusContext);
 
-const handleClick = useCallback(() => {
-  // safely get existing bus list details
-  const stored = JSON.parse(localStorage.getItem("busListDetails")) || { busList: [] };
+  const handleClick = useCallback(() => {
+    const stored = JSON.parse(localStorage.getItem("busListDetails")) || { busList: [] };
+    const newData = {
+      ...stored,
+      selectedBus: bus,
+    };
 
-  // save selected bus (keep existing structure)
-  const newData = {
-    ...stored,
-    selectedBus: bus,
-  };
+    try {
+      localStorage.setItem("busListDetails", JSON.stringify(newData));
+    } catch (err) {
+      console.warn("Could not persist selected bus:", err);
+    }
 
-  try {
-    localStorage.setItem("busListDetails", JSON.stringify(newData));
-  } catch (err) {
-    // ignore localStorage errors in older browsers
-    console.warn("Could not persist selected bus:", err);
-  }
-
-  setSelectedBus(bus);
-  navigate("/ticket-details");
-}, [bus, setSelectedBus, navigate]);
-
+    setSelectedBus(bus);
+    navigate("/ticket-details");
+  }, [bus, setSelectedBus, navigate]);
 
   const departure = bus?.departureDateTime ? new Date(bus.departureDateTime) : null;
-  const departureDate = departure ? departure.toLocaleDateString() : "TBD";
+  const departureDate = departure ? departure.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : "TBD";
   const departureTime = departure ? departure.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "TBD";
 
-  // compute available seats if seats array exists
   const seats = Array.isArray(bus?.seats) ? bus.seats : [];
   const availableSeats = seats.filter((s) => !s.reserved).length;
 
-  // compute duration if available
   const duration = useMemo(() => {
-    if (bus?.duration) return bus.duration; // assume already human-friendly
+    if (bus?.duration) return bus.duration;
     if (bus?.arrivalDateTime && bus?.departureDateTime) {
       try {
         const a = new Date(bus.arrivalDateTime);
@@ -57,26 +50,18 @@ const handleClick = useCallback(() => {
     return null;
   }, [bus?.duration, bus?.arrivalDateTime, bus?.departureDateTime]);
 
-  const stopsCount = useMemo(() => {
-    if (Array.isArray(bus?.stops)) return bus.stops.length;
-    if (Array.isArray(bus?.routeStops)) return bus.routeStops.length;
-    return null;
-  }, [bus?.stops, bus?.routeStops]);
-
   const priceFormatted = useMemo(() => {
     try {
-      return new Intl.NumberFormat().format(bus?.basePrice ?? 0);
-    } catch (_){
-      return bus?.basePrice ?? 0;
+      return new Intl.NumberFormat('en-NP', { style: 'currency', currency: 'NPR' }).format(bus?.basePrice ?? 0);
+    } catch (_) {
+      return `Rs. ${bus?.basePrice ?? 0}`;
     }
   }, [bus?.basePrice]);
 
-  // seat layout preview: build a simple grid
   const [showSeatPreview, setShowSeatPreview] = useState(false);
 
   const seatPreview = useMemo(() => {
     const list = Array.isArray(bus?.seats) ? bus.seats : [];
-    // If bus defines seatLayout { cols }, respect it; otherwise fall back
     const cols = bus?.seatLayout?.cols || 4;
     const rows = Math.ceil(list.length / cols) || 0;
     const grid = [];
@@ -94,100 +79,128 @@ const handleClick = useCallback(() => {
 
   return (
     <article
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => (e.key === "Enter" ? handleClick() : null)}
-        className="bus-detail bg-white border border-gray-100 rounded-lg shadow-md p-4 md:p-6 cursor-pointer transition-transform duration-300 hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-      onClick={handleClick}
+      className="group bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-all duration-300 mb-4"
     >
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <img
-              src={bus?.image || busIcon}
-              alt={bus?.busName || 'bus image'}
-              className="w-12 h-12 rounded-md object-cover border border-gray-200"
-            />
-            <div>
-              <h3 className="bus-name text-lg md:text-xl font-bold text-gray-800">{bus?.busName || 'Unnamed Bus'}</h3>
-              <p className="text-sm text-gray-500 mt-1">{bus?.busType || 'Standard'}</p>
+      <div className="p-5 sm:p-6">
+        <div className="flex flex-col sm:flex-row gap-6">
+          {/* Left Section: Bus Info */}
+          <div className="flex-1">
+            <div className="flex items-start gap-4">
+              <div className="w-16 h-16 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                <img
+                  src={bus?.image || busIcon}
+                  alt={bus?.busName || 'bus'}
+                  className="w-10 h-10 object-contain opacity-80"
+                />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                  {bus?.busName || 'Unnamed Bus'}
+                </h3>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+                    {bus?.busType || 'Standard'}
+                  </span>
+                  {bus?.isAc && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                      AC
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex items-center gap-8">
+              <div>
+                <p className="text-sm text-slate-500 mb-1">Departure</p>
+                <p className="text-lg font-bold text-slate-900">{departureTime}</p>
+                <p className="text-xs text-slate-500">{departureDate}</p>
+              </div>
+              <div className="flex-1 flex flex-col items-center">
+                <div className="w-full h-px bg-slate-200 relative top-3"></div>
+                <p className="text-xs text-slate-400 bg-white px-2 relative z-10">
+                  {duration || 'Direct'}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-slate-500 mb-1">Arrival</p>
+                <p className="text-lg font-bold text-slate-900">
+                  {bus?.arrivalDateTime ? new Date(bus.arrivalDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {bus?.arrivalDateTime ? new Date(bus.arrivalDateTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'TBD'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Section: Price & Action */}
+          <div className="flex flex-col justify-between items-end sm:border-l sm:border-slate-100 sm:pl-6 min-w-[140px]">
+            <div className="text-right">
+              <p className="text-sm text-slate-500">Starting from</p>
+              <p className="text-2xl font-bold text-indigo-600">{priceFormatted}</p>
+              <p className="text-xs text-emerald-600 font-medium mt-1">
+                {availableSeats} seats left
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2 w-full mt-4 sm:mt-0">
+              <button
+                onClick={handleClick}
+                className="w-full btn-primary"
+              >
+                Select Seats
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowSeatPreview(!showSeatPreview); }}
+                className="w-full text-sm text-slate-500 hover:text-indigo-600 transition-colors py-1"
+              >
+                {showSeatPreview ? 'Hide Layout' : 'View Layout'}
+              </button>
             </div>
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-sm text-gray-500">Departs</p>
-          <p className="text-sm font-semibold text-gray-700">{departureDate}</p>
-          <p className="text-lg font-bold text-blue-600">{departureTime}</p>
-        </div>
-      </div>
 
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
-        <div className="flex-1">
-          <p className="text-sm text-gray-500">Route</p>
-          <p className="text-base font-medium text-gray-800">{bus?.routeName || bus?.route || 'Route info'}</p>
-          <div className="text-sm text-gray-500 mt-1">
-            {duration && <span className="mr-3">Duration: {duration}</span>}
-            {stopsCount !== null && <span className="mr-3">{stopsCount} stops</span>}
-            {bus?.arrivalDateTime && (
-              <span className="text-gray-500">Arrives: {new Date(bus.arrivalDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-            )}
-          </div>
-
-          {/* feature badges */}
-          <div className="mt-3 flex flex-wrap gap-2">
-            {(bus?.features || []).slice(0, 5).map((f) => (
-              <span key={f} className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full border">
-                {f}
-              </span>
-            ))}
-            {!bus?.features && bus?.isAc && <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full border">AC</span>}
-            {!bus?.features && bus?.isSleeper && <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full border">Sleeper</span>}
-          </div>
-        </div>
-
-        <div className="text-right w-full md:w-48">
-          <p className="text-sm text-gray-500">Available seats</p>
-          <p className="text-base font-medium text-gray-800">{availableSeats}</p>
-            <button
-              onClick={(e) => { e.stopPropagation(); setShowSeatPreview((s) => !s); }}
-              className="mt-3 w-full bg-white border border-gray-200 text-gray-700 py-2 rounded-md hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
-              aria-expanded={showSeatPreview}
-              aria-controls={`seat-preview-${bus?.id || 'unknown'}`}
-            >
-              {showSeatPreview ? 'Hide seats' : 'Preview seats'}
-            </button>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <p className="bus-price text-xl font-bold text-green-600">Rs. {priceFormatted}/-</p>
-          <button
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-            onClick={(e) => {
-              // prevent the div's onClick from firing twice
-              e.stopPropagation();
-              handleClick();
-            }}
-            aria-label={`Book ${bus?.busName || 'bus'}`}
-          >
-            Book
-          </button>
-      </div>
-
-      {/* seat preview grid */}
-      {showSeatPreview && (
-        <div id={`seat-preview-${bus?.id || 'unknown'}`} className="mt-4">
-          <div className="text-sm text-gray-600 mb-2">Seat layout preview</div>
-          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${seatPreview.cols}, minmax(0,1fr))` }}>
-            {seatPreview.grid.flat().map((seat, idx) => (
-              <div key={idx} className={`p-2 text-center text-xs rounded border ${seat ? (seat.reserved ? 'bg-red-100 border-red-300 text-red-700' : 'bg-green-50 border-green-200 text-green-700') : 'bg-gray-50 border-gray-100 text-gray-400'}`}>
-                {seat ? seat.seatNumber || `S${idx+1}` : ''}
+        {/* Seat Preview */}
+        {showSeatPreview && (
+          <div className="mt-6 pt-6 border-t border-slate-100 animate-fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-sm font-semibold text-slate-900">Seat Layout</h4>
+              <div className="flex gap-4 text-xs">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded bg-white border border-slate-300"></div>
+                  <span className="text-slate-600">Available</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded bg-slate-100 border border-slate-200"></div>
+                  <span className="text-slate-400">Booked</span>
+                </div>
               </div>
-            ))}
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-lg overflow-x-auto">
+              <div className="grid gap-2 min-w-max mx-auto" style={{ gridTemplateColumns: `repeat(${seatPreview.cols}, minmax(40px, 1fr))` }}>
+                {seatPreview.grid.flat().map((seat, idx) => (
+                  <div
+                    key={idx}
+                    className={`
+                      aspect-square rounded flex items-center justify-center text-xs font-medium transition-colors
+                      ${seat
+                        ? (seat.reserved
+                          ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                          : 'bg-white border border-indigo-200 text-indigo-600 shadow-sm')
+                        : 'invisible'
+                      }
+                    `}
+                  >
+                    {seat?.seatNumber || ''}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="mt-2 text-xs text-gray-500">Green = available, Red = reserved</div>
-        </div>
-      )}
+        )}
+      </div>
     </article>
   );
 };

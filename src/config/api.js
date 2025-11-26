@@ -26,7 +26,7 @@ const API_CONFIG = {
     CREATE_SEAT: '/admin/postSeat',
     BOOK_SEAT: '/bookSeats',
     // Ensure leading slash so baseURL + endpoint becomes a valid URL
-    CANCLE_TICKET: '/tickets/seat',
+    CANCLE_TICKET: '/bookSeats/seat',
     
     // Booking endpoints
     CREATE_BOOKING: '/booking/post',
