@@ -11,7 +11,7 @@ const API_CONFIG = {
     SEND_OTP: '/register/sent-otp',
     CHANGE_PASSWORD: '/register/change-password',
 
-    // Bus Stop endpoints
+    // Bus Stop endpoint
     GET_BUS_STOPS: '/busStop/get',
     CREATE_BUS_STOP: '/admin/post',
 
