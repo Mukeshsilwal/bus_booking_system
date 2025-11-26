@@ -18,14 +18,11 @@ const API_CONFIG = {
 
     SEARCH_BUSES: "/bus/search",
 
-    // Bus endpoints
     GET_ALL_BUSES: '/bus/route',
     CREATE_BUS: '/admin/routeBus',
 
-    // Seat endpoints
     CREATE_SEAT: '/admin/postSeat',
     BOOK_SEAT: '/bookSeats',
-    // Ensure leading slash so baseURL + endpoint becomes a valid URL
     CANCLE_TICKET: '/bookSeats/seat',
 
     // Booking endpoints
