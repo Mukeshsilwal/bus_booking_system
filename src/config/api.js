@@ -8,6 +8,7 @@ const API_CONFIG = {
     SEND_OTP: '/auth/sent-otp',
     CHANGE_PASSWORD: '/auth/change-password',
 
+    // Bus Stop endpoints
     GET_BUS_STOPS: '/busStop/get',
     CREATE_BUS_STOP: '/admin/post',
 
@@ -21,6 +22,21 @@ const API_CONFIG = {
     GET_ALL_BUSES: '/bus/route',
     CREATE_BUS: '/admin/routeBus',
 
+    // Seat endpoints
+    CREATE_SEAT: '/admin/postSeat',
+    BOOK_SEAT: '/bookSeats',
+    // Ensure leading slash so baseURL + endpoint becomes a valid URL
+    CANCLE_TICKET: '/bookSeats/seat',
+
+    // Booking endpoints
+    CREATE_BOOKING: '/booking/post',
+    GET_ALL_BOOKINGS: '/booking/getAll',
+
+    // Ticket endpoints
+    BOOK_TICKET: '/tickets/seat',
+    GENERATE_TICKET: '/tickets/generate',
+
+    // Delete ticket by ticket id
     DELETE_TICKET: '/tickets/ticket',
 
     // Payment endpoints
