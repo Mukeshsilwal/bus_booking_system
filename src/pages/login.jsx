@@ -19,8 +19,6 @@ export default function Login() {
   async function handleLogin() {
     const trimmedEmail = (email || "").trim();
     if (!trimmedEmail) return toast.error("Please enter your email");
-    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRe.test(trimmedEmail)) return toast.error("Please enter a valid email");
 
     if (!password || password.length < 4) return toast.error("Please enter your password");
 

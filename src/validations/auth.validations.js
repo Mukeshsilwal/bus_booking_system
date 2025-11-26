@@ -1,11 +1,6 @@
 import * as Yup from "yup";
 
 export const loginRegisterValidation = Yup.object({
-  //email validation
-  email: Yup.string()
-    .max(50, "Email limit reached.")
-    .email("Invalid Email")
-    .required("Email is required."),
 
   //password validation
   password: Yup.string()
