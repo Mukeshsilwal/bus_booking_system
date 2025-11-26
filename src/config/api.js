@@ -5,8 +5,11 @@ const API_CONFIG = {
     // Auth endpoints
     LOGIN: '/auth/login',
     SIGNUP: '/auth/create-user',
-    SEND_OTP: '/auth/sent-otp',
-    CHANGE_PASSWORD: '/auth/change-password',
+    ADMIN_REGISTER: '/register/admin',
+    APPROVE_ADMIN: '/registerapprove',
+    GET_ADMIN_REQUESTS: '/admin/requests',
+    SEND_OTP: '/register/sent-otp',
+    CHANGE_PASSWORD: '/register/change-password',
 
     // Bus Stop endpoints
     GET_BUS_STOPS: '/busStop/get',

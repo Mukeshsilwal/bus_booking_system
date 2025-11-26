@@ -5,6 +5,7 @@ import { Dashboard } from "../components/admin/Dashboard";
 import { BusManager } from "../components/admin/BusManager";
 import { RouteManager } from "../components/admin/RouteManager";
 import { TicketManager } from "../components/admin/TicketManager";
+import { AdminRequestManager } from "../components/admin/AdminRequestManager";
 
 export function AdminPanel() {
   const navigate = useNavigate();
@@ -31,6 +32,8 @@ export function AdminPanel() {
         return <RouteManager />;
       case 'tickets':
         return <TicketManager />;
+      case 'requests':
+        return <AdminRequestManager />;
       default:
         return <Dashboard />;
     }
