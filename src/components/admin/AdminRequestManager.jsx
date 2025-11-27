@@ -17,7 +17,15 @@ export function AdminRequestManager() {
             const response = await ApiService.get(API_CONFIG.ENDPOINTS.GET_ADMIN_REQUESTS);
             if (response.ok) {
                 const data = await response.json();
-                setRequests(data);
+                console.log("Fetched requests:", data); // Debugging: Check data structure
+
+                // Normalize data to ensure 'id' exists
+                const normalizedData = Array.isArray(data) ? data.map(req => ({
+                    ...req,
+                    id: req.id || req._id || req.requestId
+                })) : [];
+
+                setRequests(normalizedData);
             } else {
                 // Fallback for demo/development if API isn't ready
                 console.warn("Failed to fetch requests, using mock data if available or empty list");
