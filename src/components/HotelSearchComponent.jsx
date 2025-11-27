@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import hotelIcon from "../assets/hotel.svg"; // Assuming we might have or need an icon, falling back to text or generic if missing, but let's try to use a similar pattern. 
+
 // Actually, I should probably check if hotel.svg exists or use a different icon. 
 // For now, I'll use a placeholder SVG in the code if I can't find one, or just reuse the structure.
 // I'll use an inline SVG for the icon to be safe.
