@@ -17,7 +17,8 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<HomePage />} errorElement={<ErrorPage />} />
+          <Route path="/" element={<Login />} errorElement={<ErrorPage />} />
+          <Route path="/home" element={<HomePage />} errorElement={<ErrorPage />} />
           <Route
             path="/buslist"
             element={<BusList />}
@@ -28,18 +29,18 @@ function App() {
             element={<TicketDetails />}
             errorElement={<ErrorPage />}
           />
-              
-                  <Route path="/change-password" 
-                  element={<ChangePassword />} 
-                  errorElement={<ErrorPage />}
 
-                  />
+          <Route path="/change-password"
+            element={<ChangePassword />}
+            errorElement={<ErrorPage />}
+
+          />
           <Route
             path="/ticket-confirm"
             element={<TicketConfirmed />}
             errorElement={<ErrorPage />}
           />
-            <Route
+          <Route
             path="/admin/panel"
             element={<AdminPanel />}
             errorElement={<ErrorPage />}

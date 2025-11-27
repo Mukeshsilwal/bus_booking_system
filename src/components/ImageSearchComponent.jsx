@@ -2,7 +2,7 @@
 import React from "react";
 import { useContext, useEffect, useState } from "react";
 import busIcon from "../assets/bus.svg";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import BusListContext from "../context/busdetails";
 import ApiService from "../services/api.service";
@@ -10,6 +10,7 @@ import API_CONFIG from "../config/api";
 
 const ImageSearchComponent = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { setBusList } = useContext(BusListContext);
 
   const [source, setSource] = useState("");
@@ -25,6 +26,14 @@ const ImageSearchComponent = () => {
     if (e && e.preventDefault) e.preventDefault();
 
     setFetchError("");
+
+    // Force Login Check
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.info("Please login to search for buses.");
+      navigate("/", { state: { from: location } });
+      return;
+    }
 
     // basic validation
     if (!source || !destination || !date) {
