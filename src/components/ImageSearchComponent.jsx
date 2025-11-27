@@ -27,14 +27,6 @@ const ImageSearchComponent = () => {
 
     setFetchError("");
 
-    // Force Login Check
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.info("Please login to search for buses.");
-      navigate("/", { state: { from: location } });
-      return;
-    }
-
     // basic validation
     if (!source || !destination || !date) {
       setFetchError("Please select source, destination and date.");
