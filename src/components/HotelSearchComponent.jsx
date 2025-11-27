@@ -21,14 +21,6 @@ const HotelSearchComponent = () => {
     const handleSearch = (e) => {
         e.preventDefault();
 
-        // Force Login Check
-        const token = localStorage.getItem("token");
-        if (!token) {
-            toast.info("Please login to search for hotels.");
-            navigate("/", { state: { from: location } });
-            return;
-        }
-
         if (!city || !checkInDate || !checkOutDate) {
             toast.error("Please fill in all fields.");
             return;

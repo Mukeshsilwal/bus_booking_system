@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import NavigationBar from "../components/Navbar";
 import SelectedBusContext from "../context/selectedbus";
 import API_CONFIG from "../config/api";
@@ -10,6 +11,8 @@ import "./SeatSelection.css";
 
 export default function TicketDetails() {
   const { selectedBus } = useContext(SelectedBusContext);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [name, setName] = useState("");
@@ -85,6 +88,14 @@ export default function TicketDetails() {
   // BOOK TICKET MAIN FUNCTION
   // -----------------------------------
   async function bookTicket() {
+    // Force Login Check
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.info("Please login to proceed with payment.");
+      navigate("/", { state: { from: location } });
+      return;
+    }
+
     // client-side validation
     if (!selectedSeats.length) return toast.error("No seat selected!");
     if (!name.trim()) return toast.error("Enter passenger name!");
