@@ -33,7 +33,7 @@ export default function UserRegister() {
                 username: formData.email, // Assuming username is email
                 password: formData.password,
                 phone: formData.phone,
-                role: ["user"], // Explicitly requesting user role if needed, or backend defaults
+                role: "user", // Explicitly requesting user role if needed, or backend defaults
             });
 
             if (response && response.ok) {
