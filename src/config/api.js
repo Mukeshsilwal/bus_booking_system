@@ -6,8 +6,8 @@ const API_CONFIG = {
     LOGIN: '/auth/login',
     SIGNUP: '/auth/create-user',
     ADMIN_REGISTER: '/register/admin',
-    APPROVE_ADMIN: '/registe/approve',
-    GET_ADMIN_REQUESTS: '/admin/requests',
+    APPROVE_ADMIN: '/registerapprove',
+    GET_ADMIN_REQUESTS: '/register/all-requests',
     SEND_OTP: '/register/sent-otp',
     CHANGE_PASSWORD: '/register/change-password',
 
