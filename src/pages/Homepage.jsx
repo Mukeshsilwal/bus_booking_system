@@ -3,6 +3,7 @@ import NavigationBar from "../components/Navbar";
 import ImageSearchComponent from "../components/ImageSearchComponent";
 import HotelSearchComponent from "../components/HotelSearchComponent";
 import MovieSearchComponent from "../components/MovieSearchComponent";
+import PlaneSearchComponent from "../components/PlaneSearchComponent";
 import Footer from "../components/Footer";
 
 export default function HomePage() {
@@ -76,6 +77,15 @@ export default function HomePage() {
                   >
                     Movie Ticket
                   </button>
+                  <button
+                    onClick={() => setActiveTab('plane')}
+                    className={`px-6 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'plane'
+                      ? 'bg-white text-indigo-900 shadow-sm'
+                      : 'text-white hover:bg-white/10'
+                      }`}
+                  >
+                    Plane Booking
+                  </button>
                 </div>
 
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2 shadow-2xl border border-white/20">
@@ -83,6 +93,7 @@ export default function HomePage() {
                     {activeTab === 'bus' && <ImageSearchComponent />}
                     {activeTab === 'hotel' && <HotelSearchComponent />}
                     {activeTab === 'movie' && <MovieSearchComponent />}
+                    {activeTab === 'plane' && <PlaneSearchComponent />}
                   </div>
                 </div>
               </div>

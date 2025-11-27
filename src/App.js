@@ -13,6 +13,9 @@ import TicketDetails from "./pages/ticketDetails";
 import ErrorPage from "./pages/error-page";
 import TicketConfirmed from "./pages/ticketconfirm";
 import { AdminPanel } from "./pages/admin";
+import PlaneList from "./pages/PlaneList";
+import PlaneSeatSelection from "./pages/PlaneSeatSelection";
+import PlaneTicketConfirm from "./pages/PlaneTicketConfirm";
 
 function App() {
   return (
@@ -29,6 +32,21 @@ function App() {
           <Route
             path="/ticket-details"
             element={<TicketDetails />}
+            errorElement={<ErrorPage />}
+          />
+          <Route
+            path="/plane-list"
+            element={<PlaneList />}
+            errorElement={<ErrorPage />}
+          />
+          <Route
+            path="/plane-seats"
+            element={<PlaneSeatSelection />}
+            errorElement={<ErrorPage />}
+          />
+          <Route
+            path="/plane-confirm"
+            element={<PlaneTicketConfirm />}
             errorElement={<ErrorPage />}
           />
 
