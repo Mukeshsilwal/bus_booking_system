@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import NavigationBar from "../components/Navbar";
 import ImageSearchComponent from "../components/ImageSearchComponent";
 import HotelSearchComponent from "../components/HotelSearchComponent";
+import MovieSearchComponent from "../components/MovieSearchComponent";
 import Footer from "../components/Footer";
 
 export default function HomePage() {
@@ -51,8 +52,8 @@ export default function HomePage() {
                   <button
                     onClick={() => setActiveTab('bus')}
                     className={`px-6 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'bus'
-                        ? 'bg-white text-indigo-900 shadow-sm'
-                        : 'text-white hover:bg-white/10'
+                      ? 'bg-white text-indigo-900 shadow-sm'
+                      : 'text-white hover:bg-white/10'
                       }`}
                   >
                     Bus Booking
@@ -60,17 +61,28 @@ export default function HomePage() {
                   <button
                     onClick={() => setActiveTab('hotel')}
                     className={`px-6 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'hotel'
-                        ? 'bg-white text-indigo-900 shadow-sm'
-                        : 'text-white hover:bg-white/10'
+                      ? 'bg-white text-indigo-900 shadow-sm'
+                      : 'text-white hover:bg-white/10'
                       }`}
                   >
                     Hotel Booking
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('movie')}
+                    className={`px-6 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'movie'
+                      ? 'bg-white text-indigo-900 shadow-sm'
+                      : 'text-white hover:bg-white/10'
+                      }`}
+                  >
+                    Movie Ticket
                   </button>
                 </div>
 
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2 shadow-2xl border border-white/20">
                   <div className="bg-white rounded-xl overflow-hidden shadow-inner">
-                    {activeTab === 'bus' ? <ImageSearchComponent /> : <HotelSearchComponent />}
+                    {activeTab === 'bus' && <ImageSearchComponent />}
+                    {activeTab === 'hotel' && <HotelSearchComponent />}
+                    {activeTab === 'movie' && <MovieSearchComponent />}
                   </div>
                 </div>
               </div>
