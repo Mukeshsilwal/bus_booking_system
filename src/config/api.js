@@ -4,7 +4,7 @@ const API_CONFIG = {
   ENDPOINTS: {
     // Auth endpoints
     LOGIN: '/auth/login',
-    SIGNUP: '/auth/create-user',
+    SIGNUP: '/auth/',
     ADMIN_REGISTER: '/register/admin',
     APPROVE_ADMIN: '/register/approve',
     GET_ADMIN_REQUESTS: '/register/all-requests',
