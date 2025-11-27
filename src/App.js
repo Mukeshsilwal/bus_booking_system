@@ -19,7 +19,7 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Login />} errorElement={<ErrorPage />} />
+          <Route path="/" element={<UserLogin />} errorElement={<ErrorPage />} />
           <Route path="/home" element={<HomePage />} errorElement={<ErrorPage />} />
           <Route
             path="/buslist"

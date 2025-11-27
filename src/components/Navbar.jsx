@@ -56,12 +56,12 @@ const NavigationBar = () => {
 
             {!isAdminPath && !token && (
               <Link
-                to="/admin/login"
+                to="/login"
                 className={`px-5 py-2.5 rounded-lg font-semibold transition-all shadow-sm hover:shadow-md
                   ${scrolled ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-white text-indigo-600 hover:bg-indigo-50'}
                 `}
               >
-                Admin Login
+                Sign In
               </Link>
             )}
 
@@ -111,11 +111,11 @@ const NavigationBar = () => {
 
           {!isAdminPath && !token && (
             <Link
-              to="/admin/login"
+              to="/login"
               onClick={() => setMenuOpen(false)}
               className="block px-4 py-3 rounded-lg font-medium text-indigo-600 hover:bg-indigo-50"
             >
-              Admin Login
+              Sign In
             </Link>
           )}
 
