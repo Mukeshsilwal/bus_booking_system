@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import planeIcon from "../assets/plane.svg"; // We'll need to check if this exists or use a placeholder/svg
 
 const PlaneSearchComponent = () => {
     const navigate = useNavigate();

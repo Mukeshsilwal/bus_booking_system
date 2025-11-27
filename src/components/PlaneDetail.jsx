@@ -1,8 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
-import planeIcon from "../assets/plane.svg"; // Reuse or placeholder
-import { SeatIcon } from "./SeatIcon"; // Reuse SeatIcon
 
 const PlaneDetail = ({ flight }) => {
     const navigate = useNavigate();
