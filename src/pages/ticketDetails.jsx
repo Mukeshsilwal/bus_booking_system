@@ -92,7 +92,7 @@ export default function TicketDetails() {
     const token = localStorage.getItem("token");
     if (!token) {
       toast.info("Please login to proceed with payment.");
-      navigate("/", { state: { from: location } });
+      navigate("/login", { state: { from: location } });
       return;
     }
 

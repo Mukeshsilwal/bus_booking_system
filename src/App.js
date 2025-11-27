@@ -5,6 +5,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/login";
 import ChangePassword from "./pages/ChangePassword";
 import Register from "./pages/register";
+import UserLogin from "./pages/UserLogin";
+import UserRegister from "./pages/UserRegister";
 import HomePage from "./pages/Homepage";
 import BusList from "./pages/BusList";
 import TicketDetails from "./pages/ticketDetails";
@@ -53,6 +55,16 @@ function App() {
           <Route
             path="/admin/register"
             element={<Register />}
+            errorElement={<ErrorPage />}
+          />
+          <Route
+            path="/login"
+            element={<UserLogin />}
+            errorElement={<ErrorPage />}
+          />
+          <Route
+            path="/register"
+            element={<UserRegister />}
             errorElement={<ErrorPage />}
           />
         </Routes>
