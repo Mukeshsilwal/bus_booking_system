@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import API_CONFIG from "../config/api";
 import apiService from "../services/api.service";
 
@@ -10,6 +10,8 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/admin/panel";
 
   useEffect(() => {
     setEmail("");
@@ -38,7 +40,7 @@ export default function Login() {
         setPassword("");
 
         toast.success("Login successful!");
-        navigate("/admin/panel", { replace: true });
+        navigate(from, { replace: true });
       } else {
         const err = loginRes ? await loginRes.json().catch(() => ({})) : {};
         const msg = err.message || "Invalid email or password";
@@ -141,6 +143,15 @@ export default function Login() {
               ) : (
                 'Sign In'
               )}
+            </button>
+          </div>
+
+          <div className="mt-4">
+            <button
+              onClick={() => navigate("/home")}
+              className="w-full btn-secondary py-3 flex justify-center items-center text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors duration-200"
+            >
+              Skip Login
             </button>
           </div>
 
