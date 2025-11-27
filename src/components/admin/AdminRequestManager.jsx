@@ -25,6 +25,7 @@ export function AdminRequestManager() {
                     id: req.id || req._id || req.requestId
                 })) : [];
 
+                console.log("Normalized data:", normalizedData);
                 setRequests(normalizedData);
             } else {
                 // Fallback for demo/development if API isn't ready
