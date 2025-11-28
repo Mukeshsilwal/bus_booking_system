@@ -73,7 +73,7 @@ export default function UserLogin() {
             <div className="flex-1 flex items-center justify-center p-4 sm:p-12 lg:w-1/2">
                 <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
                     <div className="text-center">
-                        <h1 className="text-3xl font-bold text-slate-900">Passenger Login</h1>
+                        <h1 className="text-3xl font-bold text-slate-900">User Login</h1>
                         <p className="mt-2 text-sm text-slate-600">
                             Enter your credentials to access your account
                         </p>
