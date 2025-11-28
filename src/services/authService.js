@@ -20,13 +20,26 @@ class AuthService {
      * @returns {string} Normalized role
      */
     normalizeRole(backendRole) {
-        // Handle array of roles (take first role)
+        let roleString = backendRole;
+
+        // Handle array of roles/authorities
         if (Array.isArray(backendRole)) {
-            backendRole = backendRole[0];
+            // Find the authority that starts with "ROLE_"
+            // Backend returns permissions + ROLE_NAME, e.g. ["admin:read", "ROLE_ADMIN"]
+            const roleAuthority = backendRole.find(r => r.startsWith('ROLE_'));
+
+            if (roleAuthority) {
+                roleString = roleAuthority;
+            } else {
+                // Fallback: check if any of the raw strings match our known roles (in case prefix is missing)
+                const knownRole = backendRole.find(r => Object.values(ROLES).includes(r));
+                if (knownRole) roleString = knownRole;
+                else roleString = backendRole[0]; // Last resort
+            }
         }
 
         // Remove "ROLE_" prefix if present
-        const role = backendRole.replace('ROLE_', '');
+        const role = roleString ? roleString.replace('ROLE_', '') : '';
 
         // Validate and return
         if (Object.values(ROLES).includes(role)) {
