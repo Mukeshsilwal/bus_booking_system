@@ -35,22 +35,31 @@ export default function SuperAdminLogin() {
             if (loginRes && loginRes.ok) {
                 const data = await loginRes.json().catch(() => ({}));
                 const token = data.token;
-                const role = data.role;
+                // Backend sends roles as array: ["ROLE_SUPER_ADMIN"]
+                const role = data.roles || data.role;
                 const userData = {
                     email: data.email || trimmedEmail,
                     name: data.name || data.fullName,
                     id: data.id || data.userId
                 };
 
-                // Enforce SUPER_ADMIN role only
-                if (role !== ROLES.SUPER_ADMIN) {
-                    toast.error("Access denied. Super Admin credentials required.");
+                // Store authentication data (authService will normalize the role)
+                const loginSuccess = authService.login(token, role, userData);
+
+                if (!loginSuccess) {
+                    toast.error("Failed to store authentication data");
                     setIsLoading(false);
                     return;
                 }
 
-                // Store authentication data
-                authService.login(token, role, userData);
+                // Enforce SUPER_ADMIN role only
+                const normalizedRole = authService.getRole();
+                if (normalizedRole !== ROLES.SUPER_ADMIN) {
+                    toast.error("Access denied. Super Admin credentials required.");
+                    authService.logout(); // Clear the stored data
+                    setIsLoading(false);
+                    return;
+                }
 
                 setEmail("");
                 setPassword("");

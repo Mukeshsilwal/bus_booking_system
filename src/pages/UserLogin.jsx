@@ -35,22 +35,31 @@ export default function UserLogin() {
             if (loginRes && loginRes.ok) {
                 const data = await loginRes.json().catch(() => ({}));
                 const token = data.token;
-                const role = data.role || ROLES.USER; // Default to USER if not provided
+                // Backend sends roles as array: ["ROLE_USER"]
+                const role = data.roles || data.role || [ROLES.USER];
                 const userData = {
                     email: data.email || trimmedEmail,
                     name: data.name || data.fullName,
                     id: data.id || data.userId
                 };
 
-                // Enforce USER role only for user login
-                if (role !== ROLES.USER) {
-                    toast.error("This portal is for regular users only. Please use the appropriate login portal.");
+                // Store authentication data (authService will normalize the role)
+                const loginSuccess = authService.login(token, role, userData);
+
+                if (!loginSuccess) {
+                    toast.error("Failed to store authentication data");
                     setIsLoading(false);
                     return;
                 }
 
-                // Store authentication data
-                authService.login(token, role, userData);
+                // Enforce USER role only for user login
+                const normalizedRole = authService.getRole();
+                if (normalizedRole !== ROLES.USER) {
+                    toast.error("This portal is for regular users only. Please use the appropriate login portal.");
+                    authService.logout(); // Clear the stored data
+                    setIsLoading(false);
+                    return;
+                }
 
                 setEmail("");
                 setPassword("");

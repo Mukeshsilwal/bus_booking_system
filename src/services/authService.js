@@ -13,9 +13,35 @@ class AuthService {
     USER_DATA_KEY = 'userData';
 
     /**
+     * Normalize backend role format to frontend format
+     * Backend sends: "ROLE_USER", "ROLE_ADMIN", "ROLE_SUPER_ADMIN"
+     * Frontend uses: "USER", "ADMIN", "SUPER_ADMIN"
+     * @param {string|string[]} backendRole - Role from backend (can be string or array)
+     * @returns {string} Normalized role
+     */
+    normalizeRole(backendRole) {
+        // Handle array of roles (take first role)
+        if (Array.isArray(backendRole)) {
+            backendRole = backendRole[0];
+        }
+
+        // Remove "ROLE_" prefix if present
+        const role = backendRole.replace('ROLE_', '');
+
+        // Validate and return
+        if (Object.values(ROLES).includes(role)) {
+            return role;
+        }
+
+        // Default to USER if invalid
+        console.warn('Invalid role received:', backendRole, '- defaulting to USER');
+        return ROLES.USER;
+    }
+
+    /**
      * Store authentication data after successful login
      * @param {string} token - JWT token
-     * @param {string} role - User role (USER, ADMIN, SUPER_ADMIN)
+     * @param {string|string[]} role - User role (can be "ROLE_USER" or ["ROLE_USER"])
      * @param {object} userData - Additional user data
      */
     login(token, role, userData = {}) {
@@ -24,13 +50,11 @@ class AuthService {
             return false;
         }
 
-        if (!Object.values(ROLES).includes(role)) {
-            console.error('Invalid role:', role);
-            return false;
-        }
+        // Normalize the role
+        const normalizedRole = this.normalizeRole(role);
 
         localStorage.setItem(this.TOKEN_KEY, token);
-        localStorage.setItem(this.ROLE_KEY, role);
+        localStorage.setItem(this.ROLE_KEY, normalizedRole);
         localStorage.setItem(this.USER_DATA_KEY, JSON.stringify(userData));
 
         return true;

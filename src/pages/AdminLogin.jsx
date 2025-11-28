@@ -35,27 +35,36 @@ export default function AdminLogin() {
             if (loginRes && loginRes.ok) {
                 const data = await loginRes.json().catch(() => ({}));
                 const token = data.token;
-                const role = data.role || ROLES.ADMIN; // Default to ADMIN if not provided
+                // Backend sends roles as array: ["ROLE_ADMIN"] or ["ROLE_SUPER_ADMIN"]
+                const role = data.roles || data.role || [ROLES.ADMIN];
                 const userData = {
                     email: data.email || trimmedEmail,
                     name: data.name || data.fullName,
                     id: data.id || data.userId
                 };
 
-                // Enforce ADMIN or SUPER_ADMIN role only
-                if (role !== ROLES.ADMIN && role !== ROLES.SUPER_ADMIN) {
-                    toast.error("Access denied. Admin credentials required.");
+                // Store authentication data (authService will normalize the role)
+                const loginSuccess = authService.login(token, role, userData);
+
+                if (!loginSuccess) {
+                    toast.error("Failed to store authentication data");
                     setIsLoading(false);
                     return;
                 }
 
-                // Store authentication data
-                authService.login(token, role, userData);
+                // Enforce ADMIN or SUPER_ADMIN role only
+                const normalizedRole = authService.getRole();
+                if (normalizedRole !== ROLES.ADMIN && normalizedRole !== ROLES.SUPER_ADMIN) {
+                    toast.error("Access denied. Admin credentials required.");
+                    authService.logout(); // Clear the stored data
+                    setIsLoading(false);
+                    return;
+                }
 
                 setEmail("");
                 setPassword("");
 
-                toast.success(`Welcome ${authService.getRoleDisplayName(role)}!`);
+                toast.success(`Welcome ${authService.getRoleDisplayName(normalizedRole)}!`);
                 navigate(from, { replace: true });
             } else {
                 const err = loginRes ? await loginRes.json().catch(() => ({})) : {};
