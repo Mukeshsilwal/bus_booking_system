@@ -16,9 +16,16 @@ const TicketConfirmed = () => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    const encodedData = searchParams.get("data");
-    if (encodedData) {
-      verifyPayment(encodedData);
+    const esewaData = searchParams.get("data");
+    const khaltiPidx = searchParams.get("pidx");
+    const imeRefId = searchParams.get("RefId");
+
+    if (esewaData) {
+      verifyPayment("esewa", esewaData);
+    } else if (khaltiPidx) {
+      verifyPayment("khalti", khaltiPidx);
+    } else if (imeRefId) {
+      verifyPayment("imepay", imeRefId);
     } else {
       fetchPdf();
     }
@@ -28,24 +35,34 @@ const TicketConfirmed = () => {
     };
   }, [searchParams]);
 
-  async function verifyPayment(encodedData) {
+  async function verifyPayment(provider, data) {
     setIsLoading(true);
     setError("");
     try {
-      // Decode the base64 encoded data from eSewa to get transaction_uuid
       let transactionId = "";
-      try {
-        const decoded = JSON.parse(atob(encodedData));
-        transactionId = decoded.transaction_uuid;
-      } catch (e) {
-        console.error("Failed to decode eSewa data", e);
-        throw new Error("Invalid payment data");
+      let providerToken = "";
+
+      if (provider === "esewa") {
+        // Decode the base64 encoded data from eSewa to get transaction_uuid
+        try {
+          const decoded = JSON.parse(atob(data));
+          transactionId = decoded.transaction_uuid;
+          providerToken = data; // encoded data
+        } catch (e) {
+          console.error("Failed to decode eSewa data", e);
+          throw new Error("Invalid payment data");
+        }
+      } else if (provider === "khalti") {
+        transactionId = data; // pidx
+        providerToken = data; // pidx
+      } else if (provider === "imepay") {
+        transactionId = data; // RefId
+        providerToken = searchParams.get("TokenId") || data;
       }
 
-      let provider = "esewa";
       const response = await ApiService.post(`${API_CONFIG.ENDPOINTS.ESEWA_VERIFY_PAYMENT}/${provider}`, {
         transactionId: transactionId,
-        providerToken: encodedData
+        providerToken: providerToken
       });
 
       if (response.status === 200 || response.status === 201) {

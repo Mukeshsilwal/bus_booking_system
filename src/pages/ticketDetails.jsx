@@ -47,12 +47,12 @@ export default function TicketDetails() {
   function generateRandomId() {
     return Array.from({ length: 10 }, () => Math.floor(Math.random() * 10)).join("");
   }
-  let provider = "esewa";
+  const [provider, setProvider] = useState("esewa");
 
   // -----------------------------------
-  // INITIATE PAYMENT (BACKEND → ESEWA)
+  // INITIATE PAYMENT (BACKEND → PROVIDER)
   // -----------------------------------
-  async function esewaPaymentCall(tid, totalCost, user) {
+  async function handlePayment(tid, totalCost, user) {
     const payload = {
       customerId: user?.id ?? "USER-123",
       amount: totalCost,
@@ -88,8 +88,18 @@ export default function TicketDetails() {
     const { gatewayUrl, params } = responseData.data;
 
     // -----------------------------
-    // 2) REDIRECT USER TO ESEWA
+    // 2) REDIRECT USER TO PAYMENT GATEWAY
     // -----------------------------
+    // For Khalti/IME Pay, the gatewayUrl might be different, but the mechanism is similar
+    // If the backend returns a direct payment URL (like for Khalti sometimes), we might just redirect
+    // But assuming form submission for consistency or based on backend response
+
+    if (provider === 'khalti' && params.payment_url) {
+      // Khalti might return a direct payment_url in params
+      window.location.href = params.payment_url;
+      return;
+    }
+
     const form = document.createElement("form");
     form.method = "POST";
     form.action = gatewayUrl;   // <--- dynamic URL from backend
@@ -201,7 +211,8 @@ export default function TicketDetails() {
     localStorage.setItem("selectedSeats", JSON.stringify(bookedSeatNumbers));
     localStorage.setItem("email", email);
 
-    // 3️⃣ Get eSewa signature
+    // 3️⃣ Get eSewa signature (Only needed for eSewa usually, but keeping flow consistent)
+    // If other providers don't need signature, backend initiate endpoint should handle it or ignore it
     try {
       const sigRes = await ApiService.get(
         `${API_CONFIG.ENDPOINTS.GENERATE_SIGNATURE}?total_cost=${totalCost}&transaction_uuid=${tid}`
@@ -214,8 +225,8 @@ export default function TicketDetails() {
 
       const signature = await sigRes.text();
 
-      // 4️⃣ Submit to eSewa
-      await esewaPaymentCall(signature, tid, bookingId);
+      // 4️⃣ Submit to Payment Gateway
+      await handlePayment(signature, tid, bookingId);
     } catch (err) {
       console.error("Signature/API error:", err);
       toast.error(err.message || "Signature API error!");
@@ -383,14 +394,41 @@ export default function TicketDetails() {
                   </div>
                 </div>
 
+                <div className="pb-4 border-b border-slate-100">
+                  <p className="text-slate-500 mb-2">Payment Method</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setProvider('esewa')}
+                      className={`flex-1 py-2 px-2 border rounded-md text-sm font-medium transition-colors ${provider === 'esewa' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 text-gray-600 hover:border-green-300'}`}
+                    >
+                      eSewa
+                    </button>
+                    <button
+                      onClick={() => setProvider('khalti')}
+                      className={`flex-1 py-2 px-2 border rounded-md text-sm font-medium transition-colors ${provider === 'khalti' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 text-gray-600 hover:border-purple-300'}`}
+                    >
+                      Khalti
+                    </button>
+                    <button
+                      onClick={() => setProvider('imepay')}
+                      className={`flex-1 py-2 px-2 border rounded-md text-sm font-medium transition-colors ${provider === 'imepay' ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-200 text-gray-600 hover:border-red-300'}`}
+                    >
+                      IME Pay
+                    </button>
+                  </div>
+                </div>
+
                 <button
                   onClick={bookTicket}
                   disabled={isBooking || selectedSeats.length === 0}
                   className={`w-full btn-primary py-3 font-bold text-lg shadow-md hover:shadow-lg transform transition-all active:scale-95 ${isBooking || selectedSeats.length === 0 ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  style={{
+                    backgroundColor: provider === 'khalti' ? '#5c2d91' : provider === 'imepay' ? '#ed1c24' : undefined,
+                    borderColor: provider === 'khalti' ? '#5c2d91' : provider === 'imepay' ? '#ed1c24' : undefined
+                  }}
                 >
-                  {isBooking ? 'Processing...' : 'Pay with eSewa'}
+                  {isBooking ? 'Processing...' : `Pay with ${provider === 'esewa' ? 'eSewa' : provider === 'khalti' ? 'Khalti' : 'IME Pay'}`}
                 </button>
-
                 <p className="text-xs text-center text-slate-500 mt-4">
                   By clicking Pay, you agree to our Terms & Conditions
                 </p>
