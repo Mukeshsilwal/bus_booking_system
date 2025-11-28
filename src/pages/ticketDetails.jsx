@@ -58,7 +58,7 @@ export default function TicketDetails() {
       amount: totalCost,
       metadata: {
         productId: "BUS-TICKET-2025",
-        transactionUUID: tid
+        tid: tid
       },
       successUrl: "https://busbookingsystem-mu.vercel.app/ticket-confirm",
       failureUrl: "https://busbookingsystem-mu.vercel.app/booking-failed",
