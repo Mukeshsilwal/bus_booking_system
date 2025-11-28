@@ -5,14 +5,14 @@ import API_CONFIG from "../config/api";
 import apiService from "../services/api.service";
 import authService, { ROLES } from "../services/authService";
 
-export default function UserLogin() {
+export default function SuperAdminLogin() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const from = location.state?.from?.pathname || "/home";
+    const from = location.state?.from?.pathname || "/admin/panel";
 
     useEffect(() => {
         setEmail("");
@@ -35,16 +35,16 @@ export default function UserLogin() {
             if (loginRes && loginRes.ok) {
                 const data = await loginRes.json().catch(() => ({}));
                 const token = data.token;
-                const role = data.role || ROLES.USER; // Default to USER if not provided
+                const role = data.role;
                 const userData = {
                     email: data.email || trimmedEmail,
                     name: data.name || data.fullName,
                     id: data.id || data.userId
                 };
 
-                // Enforce USER role only for user login
-                if (role !== ROLES.USER) {
-                    toast.error("This portal is for regular users only. Please use the appropriate login portal.");
+                // Enforce SUPER_ADMIN role only
+                if (role !== ROLES.SUPER_ADMIN) {
+                    toast.error("Access denied. Super Admin credentials required.");
                     setIsLoading(false);
                     return;
                 }
@@ -55,7 +55,7 @@ export default function UserLogin() {
                 setEmail("");
                 setPassword("");
 
-                toast.success("Login successful!");
+                toast.success("Welcome Super Administrator!");
                 navigate(from, { replace: true });
             } else {
                 const err = loginRes ? await loginRes.json().catch(() => ({})) : {};
@@ -73,24 +73,36 @@ export default function UserLogin() {
     return (
         <div className="min-h-screen flex bg-slate-50">
             {/* Left Side - Image */}
-            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-indigo-900">
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop')] bg-cover bg-center opacity-40"></div>
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 to-indigo-900/80"></div>
+            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-purple-900 to-indigo-900">
+                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')] bg-cover bg-center opacity-20"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-900/95 to-indigo-900/90"></div>
                 <div className="relative z-10 flex flex-col justify-center px-12 text-white">
-                    <h2 className="text-4xl font-bold mb-6">Welcome Aboard</h2>
-                    <p className="text-lg text-indigo-100 max-w-md">
-                        Sign in to book your tickets, manage your trips, and travel with comfort and ease.
+                    <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-3xl flex items-center justify-center mb-6">
+                        <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                    </div>
+                    <h2 className="text-4xl font-bold mb-6">Super Admin Portal</h2>
+                    <p className="text-lg text-purple-100 max-w-md">
+                        Highest level access with full system control. Manage all users, admins, and system configurations.
                     </p>
                 </div>
             </div>
 
             {/* Right Side - Form */}
             <div className="flex-1 flex items-center justify-center p-4 sm:p-12 lg:w-1/2">
-                <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-2xl shadow-lg border border-slate-200">
                     <div className="text-center">
-                        <h1 className="text-3xl font-bold text-slate-900">User Login</h1>
+                        <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                        </div>
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                            Super Admin
+                        </h1>
                         <p className="mt-2 text-sm text-slate-600">
-                            Enter your credentials to access your account
+                            Restricted access - Super Admin credentials required
                         </p>
                     </div>
 
@@ -105,7 +117,7 @@ export default function UserLogin() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="input-field"
-                                placeholder="you@example.com"
+                                placeholder="superadmin@example.com"
                                 autoComplete="email"
                                 autoFocus
                                 onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
@@ -149,7 +161,7 @@ export default function UserLogin() {
                         <button
                             onClick={handleLogin}
                             disabled={isLoading}
-                            className={`w-full btn-primary py-3 flex justify-center items-center ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            className={`w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all flex justify-center items-center ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                         >
                             {isLoading ? (
                                 <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -157,7 +169,7 @@ export default function UserLogin() {
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
                             ) : (
-                                'Sign In'
+                                'Sign In as Super Admin'
                             )}
                         </button>
                     </div>
@@ -165,22 +177,14 @@ export default function UserLogin() {
                     <div className="mt-4">
                         <button
                             onClick={() => navigate("/home")}
-                            className="w-full btn-secondary py-3 flex justify-center items-center text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors duration-200"
+                            className="w-full btn-secondary py-3 flex justify-center items-center text-purple-600 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg transition-colors duration-200"
                         >
-                            Skip Login
+                            Back to Home
                         </button>
                     </div>
 
-                    <div className="mt-6 flex items-center justify-between text-sm">
-                        <Link to="/change-password" className="text-indigo-600 hover:text-indigo-500 font-medium">
-                            Forgot password?
-                        </Link>
-                        <p className="text-slate-600">
-                            Don't have an account?{' '}
-                            <Link to="/register" className="text-indigo-600 hover:text-indigo-500 font-medium">
-                                Sign up
-                            </Link>
-                        </p>
+                    <div className="mt-6 text-center text-sm text-slate-500">
+                        <p>Authorized personnel only</p>
                     </div>
                 </div>
             </div>

@@ -5,14 +5,14 @@ import API_CONFIG from "../config/api";
 import apiService from "../services/api.service";
 import authService, { ROLES } from "../services/authService";
 
-export default function UserLogin() {
+export default function AdminLogin() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const from = location.state?.from?.pathname || "/home";
+    const from = location.state?.from?.pathname || "/admin/panel";
 
     useEffect(() => {
         setEmail("");
@@ -35,16 +35,16 @@ export default function UserLogin() {
             if (loginRes && loginRes.ok) {
                 const data = await loginRes.json().catch(() => ({}));
                 const token = data.token;
-                const role = data.role || ROLES.USER; // Default to USER if not provided
+                const role = data.role || ROLES.ADMIN; // Default to ADMIN if not provided
                 const userData = {
                     email: data.email || trimmedEmail,
                     name: data.name || data.fullName,
                     id: data.id || data.userId
                 };
 
-                // Enforce USER role only for user login
-                if (role !== ROLES.USER) {
-                    toast.error("This portal is for regular users only. Please use the appropriate login portal.");
+                // Enforce ADMIN or SUPER_ADMIN role only
+                if (role !== ROLES.ADMIN && role !== ROLES.SUPER_ADMIN) {
+                    toast.error("Access denied. Admin credentials required.");
                     setIsLoading(false);
                     return;
                 }
@@ -55,7 +55,7 @@ export default function UserLogin() {
                 setEmail("");
                 setPassword("");
 
-                toast.success("Login successful!");
+                toast.success(`Welcome ${authService.getRoleDisplayName(role)}!`);
                 navigate(from, { replace: true });
             } else {
                 const err = loginRes ? await loginRes.json().catch(() => ({})) : {};
@@ -74,12 +74,12 @@ export default function UserLogin() {
         <div className="min-h-screen flex bg-slate-50">
             {/* Left Side - Image */}
             <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-indigo-900">
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop')] bg-cover bg-center opacity-40"></div>
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 to-indigo-900/80"></div>
+                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1570125909232-eb263c188f7e?q=80&w=2071&auto=format&fit=crop')] bg-cover bg-center opacity-40"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/90 to-purple-900/80"></div>
                 <div className="relative z-10 flex flex-col justify-center px-12 text-white">
-                    <h2 className="text-4xl font-bold mb-6">Welcome Aboard</h2>
+                    <h2 className="text-4xl font-bold mb-6">Admin Portal</h2>
                     <p className="text-lg text-indigo-100 max-w-md">
-                        Sign in to book your tickets, manage your trips, and travel with comfort and ease.
+                        Sign in to access your dashboard, manage bookings, and control your fleet with ease.
                     </p>
                 </div>
             </div>
@@ -88,9 +88,14 @@ export default function UserLogin() {
             <div className="flex-1 flex items-center justify-center p-4 sm:p-12 lg:w-1/2">
                 <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
                     <div className="text-center">
-                        <h1 className="text-3xl font-bold text-slate-900">User Login</h1>
+                        <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <h1 className="text-3xl font-bold text-slate-900">Admin Sign In</h1>
                         <p className="mt-2 text-sm text-slate-600">
-                            Enter your credentials to access your account
+                            Enter your admin credentials to access the control panel
                         </p>
                     </div>
 
@@ -105,7 +110,7 @@ export default function UserLogin() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="input-field"
-                                placeholder="you@example.com"
+                                placeholder="admin@example.com"
                                 autoComplete="email"
                                 autoFocus
                                 onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
@@ -157,7 +162,7 @@ export default function UserLogin() {
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
                             ) : (
-                                'Sign In'
+                                'Sign In as Admin'
                             )}
                         </button>
                     </div>
@@ -167,7 +172,7 @@ export default function UserLogin() {
                             onClick={() => navigate("/home")}
                             className="w-full btn-secondary py-3 flex justify-center items-center text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors duration-200"
                         >
-                            Skip Login
+                            Back to Home
                         </button>
                     </div>
 
@@ -176,9 +181,9 @@ export default function UserLogin() {
                             Forgot password?
                         </Link>
                         <p className="text-slate-600">
-                            Don't have an account?{' '}
-                            <Link to="/register" className="text-indigo-600 hover:text-indigo-500 font-medium">
-                                Sign up
+                            Need admin access?{' '}
+                            <Link to="/admin/register" className="text-indigo-600 hover:text-indigo-500 font-medium">
+                                Request Access
                             </Link>
                         </p>
                     </div>

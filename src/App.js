@@ -2,7 +2,8 @@ import "./App.css";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "./pages/login";
+import AdminLogin from "./pages/AdminLogin";
+import SuperAdminLogin from "./pages/SuperAdminLogin";
 import ChangePassword from "./pages/ChangePassword";
 import Register from "./pages/register";
 import UserLogin from "./pages/UserLogin";
@@ -20,14 +21,30 @@ import QfxMovies from "./pages/QfxMovies";
 import QfxMovieDetails from "./pages/QfxMovieDetails";
 import QfxSeatSelection from "./pages/QfxSeatSelection";
 import QfxBookingConfirmation from "./pages/QfxBookingConfirmation";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ROLES } from "./services/authService";
 
 function App() {
   return (
     <div className="App">
       <BrowserRouter>
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<UserLogin />} errorElement={<ErrorPage />} />
           <Route path="/home" element={<HomePage />} errorElement={<ErrorPage />} />
+
+          {/* User Login Routes */}
+          <Route path="/login" element={<UserLogin />} errorElement={<ErrorPage />} />
+          <Route path="/register" element={<UserRegister />} errorElement={<ErrorPage />} />
+
+          {/* Admin Login Routes */}
+          <Route path="/admin/login" element={<AdminLogin />} errorElement={<ErrorPage />} />
+          <Route path="/admin/register" element={<Register />} errorElement={<ErrorPage />} />
+
+          {/* Super Admin Login Route */}
+          <Route path="/super-admin/login" element={<SuperAdminLogin />} errorElement={<ErrorPage />} />
+
+          {/* Booking Routes - Accessible to all authenticated users */}
           <Route
             path="/buslist"
             element={<BusList />}
@@ -38,6 +55,13 @@ function App() {
             element={<TicketDetails />}
             errorElement={<ErrorPage />}
           />
+          <Route
+            path="/ticket-confirm"
+            element={<TicketConfirmed />}
+            errorElement={<ErrorPage />}
+          />
+
+          {/* Plane Booking Routes */}
           <Route
             path="/plane-list"
             element={<PlaneList />}
@@ -76,39 +100,21 @@ function App() {
             errorElement={<ErrorPage />}
           />
 
-          <Route path="/change-password"
-            element={<ChangePassword />}
-            errorElement={<ErrorPage />}
-
-          />
-          <Route
-            path="/ticket-confirm"
-            element={<TicketConfirmed />}
-            errorElement={<ErrorPage />}
-          />
+          {/* Protected Admin Routes - Requires ADMIN or SUPER_ADMIN role */}
           <Route
             path="/admin/panel"
-            element={<AdminPanel />}
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                <AdminPanel />
+              </ProtectedRoute>
+            }
             errorElement={<ErrorPage />}
           />
+
+          {/* Utility Routes */}
           <Route
-            path="/admin/login"
-            element={<Login />}
-            errorElement={<ErrorPage />}
-          />
-          <Route
-            path="/admin/register"
-            element={<Register />}
-            errorElement={<ErrorPage />}
-          />
-          <Route
-            path="/login"
-            element={<UserLogin />}
-            errorElement={<ErrorPage />}
-          />
-          <Route
-            path="/register"
-            element={<UserRegister />}
+            path="/change-password"
+            element={<ChangePassword />}
             errorElement={<ErrorPage />}
           />
         </Routes>

@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import authService from '../../services/authService';
 
 export function Sidebar({ activeTab, setActiveTab, onLogout }) {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [pendingRequests, setPendingRequests] = useState(3); // This would come from API
+    const userRole = authService.getRoleDisplayName();
+    const userData = authService.getUserData() || {};
 
     const menuItems = [
         {
@@ -16,7 +19,7 @@ export function Sidebar({ activeTab, setActiveTab, onLogout }) {
         },
         {
             id: 'buses',
-            label: 'Bus Management',
+            label: 'Transport Management',
             icon: (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -34,7 +37,7 @@ export function Sidebar({ activeTab, setActiveTab, onLogout }) {
         },
         {
             id: 'tickets',
-            label: 'Ticket Bookings',
+            label: 'Bookings',
             icon: (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
@@ -90,11 +93,16 @@ export function Sidebar({ activeTab, setActiveTab, onLogout }) {
                 <div className="p-6 border-b border-white/10">
                     <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                            A
+                            {(userData.name || 'Admin').charAt(0).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-white font-semibold truncate">Admin User</p>
-                            <p className="text-indigo-200 text-sm truncate">admin@busticket.com</p>
+                            <p className="text-white font-semibold truncate">{userData.name || 'Admin User'}</p>
+                            <p className="text-indigo-200 text-sm truncate">{userData.email || 'admin@example.com'}</p>
+                            <div className="mt-1">
+                                <span className="inline-block px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full text-xs text-white font-medium">
+                                    {userRole}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -107,8 +115,8 @@ export function Sidebar({ activeTab, setActiveTab, onLogout }) {
                         key={item.id}
                         onClick={() => setActiveTab(item.id)}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative ${activeTab === item.id
-                                ? 'bg-white text-indigo-600 shadow-lg shadow-white/20'
-                                : 'text-white/80 hover:bg-white/10 hover:text-white'
+                            ? 'bg-white text-indigo-600 shadow-lg shadow-white/20'
+                            : 'text-white/80 hover:bg-white/10 hover:text-white'
                             }`}
                     >
                         <div className={`${activeTab === item.id ? 'scale-110' : 'group-hover:scale-110'} transition-transform`}>
