@@ -40,12 +40,13 @@ const QfxMovieDetails = () => {
             const showtimesMap = {};
             for (const cinema of cinemas) {
                 try {
-                    const res = await QfxService.getShowtimes(id, cinema.id, selectedDate);
+                    // Use CinemaID instead of id
+                    const res = await QfxService.getShowtimes(id, cinema.CinemaID, selectedDate);
                     if (res.data && res.data.length > 0) {
-                        showtimesMap[cinema.id] = res.data;
+                        showtimesMap[cinema.CinemaID] = res.data;
                     }
                 } catch (error) {
-                    console.error(`Error fetching showtimes for cinema ${cinema.id}:`, error);
+                    console.error(`Error fetching showtimes for cinema ${cinema.CinemaID}:`, error);
                 }
             }
             setShowtimes(showtimesMap);
@@ -83,8 +84,8 @@ const QfxMovieDetails = () => {
                 <div className="relative h-[50vh] sm:h-[60vh]">
                     <div className="absolute inset-0">
                         <img
-                            src={movie.posterUrl || 'https://via.placeholder.com/1200x600?text=No+Backdrop'}
-                            alt={movie.name}
+                            src={movie.PosterUrl || 'https://via.placeholder.com/1200x600?text=No+Backdrop'}
+                            alt={movie.MovieName}
                             className="w-full h-full object-cover opacity-40"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent"></div>
@@ -92,19 +93,19 @@ const QfxMovieDetails = () => {
                     <div className="absolute bottom-0 left-0 w-full p-8 sm:p-12">
                         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-end gap-8">
                             <img
-                                src={movie.posterUrl}
-                                alt={movie.name}
+                                src={movie.PosterUrl}
+                                alt={movie.MovieName}
                                 className="w-48 rounded-lg shadow-2xl hidden sm:block"
                             />
                             <div className="mb-4">
-                                <h1 className="text-4xl sm:text-5xl font-bold mb-2">{movie.name}</h1>
+                                <h1 className="text-4xl sm:text-5xl font-bold mb-2">{movie.MovieName}</h1>
                                 <div className="flex flex-wrap gap-4 text-sm text-gray-300 mb-4">
-                                    <span className="bg-orange-600 px-2 py-1 rounded text-white font-bold">{movie.rating}</span>
-                                    <span>{movie.duration} min</span>
-                                    <span>{movie.genre}</span>
-                                    <span>{movie.language}</span>
+                                    <span className="bg-orange-600 px-2 py-1 rounded text-white font-bold">{movie.Rating}</span>
+                                    <span>{movie.Duration} min</span>
+                                    <span>{movie.Genre}</span>
+                                    <span>{movie.Language || 'English'}</span>
                                 </div>
-                                <p className="max-w-2xl text-gray-300 text-lg line-clamp-3">{movie.description}</p>
+                                <p className="max-w-2xl text-gray-300 text-lg line-clamp-3">{movie.Synopsis}</p>
                             </div>
                         </div>
                     </div>
@@ -125,25 +126,25 @@ const QfxMovieDetails = () => {
 
                     <div className="space-y-8">
                         {cinemas.map((cinema) => {
-                            const cinemaShowtimes = showtimes[cinema.id];
+                            const cinemaShowtimes = showtimes[cinema.CinemaID];
                             if (!cinemaShowtimes || cinemaShowtimes.length === 0) return null;
 
                             return (
-                                <div key={cinema.id} className="bg-gray-800 rounded-lg p-6">
-                                    <h3 className="text-xl font-bold mb-4 text-orange-400">{cinema.name}</h3>
-                                    <p className="text-sm text-gray-400 mb-4">{cinema.location}</p>
+                                <div key={cinema.CinemaID} className="bg-gray-800 rounded-lg p-6">
+                                    <h3 className="text-xl font-bold mb-4 text-orange-400">{cinema.Name}</h3>
+                                    <p className="text-sm text-gray-400 mb-4">{cinema.Location}</p>
                                     <div className="flex flex-wrap gap-4">
                                         {cinemaShowtimes.map((showtime) => (
                                             <button
-                                                key={showtime.id}
-                                                onClick={() => handleShowtimeClick(showtime.id)}
+                                                key={showtime.ShowtimeID}
+                                                onClick={() => handleShowtimeClick(showtime.ShowtimeID)}
                                                 className="px-6 py-3 bg-gray-700 hover:bg-orange-600 rounded-lg transition-colors border border-gray-600 hover:border-orange-500 group"
                                             >
                                                 <div className="text-lg font-bold group-hover:text-white">
-                                                    {new Date(showtime.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    {new Date(showtime.ShowTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </div>
                                                 <div className="text-xs text-gray-400 group-hover:text-orange-100">
-                                                    {showtime.screenName}
+                                                    {showtime.ScreenName}
                                                 </div>
                                             </button>
                                         ))}

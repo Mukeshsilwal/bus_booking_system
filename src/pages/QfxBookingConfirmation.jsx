@@ -40,7 +40,9 @@ const QfxBookingConfirmation = () => {
                     <div className="px-6 py-8">
                         <div className="mb-6 text-center">
                             <p className="text-sm text-gray-500 uppercase tracking-wide">Booking ID</p>
-                            <p className="text-3xl font-mono font-bold text-gray-800">{booking.providerBookingId}</p>
+                            <p className="text-3xl font-mono font-bold text-gray-800">
+                                {booking.providerBookingId || booking.ProviderBookingId || booking.id}
+                            </p>
                         </div>
 
                         <div className="space-y-4 border-t border-b border-gray-100 py-6">
@@ -64,7 +66,9 @@ const QfxBookingConfirmation = () => {
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-500">Amount Paid</span>
-                                <span className="font-bold text-orange-600">Rs. {booking.amount}</span>
+                                <span className="font-bold text-orange-600">
+                                    Rs. {booking.amount || booking.Amount}
+                                </span>
                             </div>
                         </div>
 

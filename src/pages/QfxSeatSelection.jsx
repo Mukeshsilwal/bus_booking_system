@@ -29,18 +29,21 @@ const QfxSeatSelection = () => {
     }, [showtimeId]);
 
     const handleSeatClick = (seat) => {
-        if (seat.status === 'BOOKED') return;
+        if (seat.Status === 'BOOKED') return;
 
-        const isSelected = selectedSeats.some((s) => s.id === seat.id);
+        // Use SeatID if available, fallback to id or SeatNumber
+        const seatId = seat.SeatID || seat.id || seat.SeatNumber;
+        const isSelected = selectedSeats.some((s) => (s.SeatID || s.id || s.SeatNumber) === seatId);
+
         if (isSelected) {
-            setSelectedSeats(selectedSeats.filter((s) => s.id !== seat.id));
+            setSelectedSeats(selectedSeats.filter((s) => (s.SeatID || s.id || s.SeatNumber) !== seatId));
         } else {
             setSelectedSeats([...selectedSeats, seat]);
         }
     };
 
     const calculateTotal = () => {
-        return selectedSeats.reduce((total, seat) => total + seat.price, 0);
+        return selectedSeats.reduce((total, seat) => total + seat.Price, 0);
     };
 
     const handleProceed = async () => {
@@ -63,9 +66,9 @@ const QfxSeatSelection = () => {
                 amount: calculateTotal(),
                 metadata: {
                     showtimeId: showtimeId,
-                    movieName: layout.movieName,
-                    showTime: layout.startTime,
-                    seats: selectedSeats.map(s => s.seatNumber).join(','),
+                    movieName: layout.MovieName,
+                    showTime: layout.ShowTime,
+                    seats: selectedSeats.map(s => s.SeatNumber).join(','),
                     customerName: user.name || 'Guest User',
                     customerEmail: user.email || 'guest@example.com',
                     customerPhone: user.phone || '9800000000'
@@ -78,10 +81,10 @@ const QfxSeatSelection = () => {
                 navigate('/qfx/confirmation', {
                     state: {
                         booking: res.data,
-                        movieName: layout.movieName,
-                        cinemaName: layout.cinemaName,
-                        showTime: layout.startTime,
-                        seats: selectedSeats.map(s => s.seatNumber).join(',')
+                        movieName: layout.MovieName,
+                        cinemaName: layout.CinemaName,
+                        showTime: layout.ShowTime,
+                        seats: selectedSeats.map(s => s.SeatNumber).join(',')
                     }
                 });
             }
@@ -113,8 +116,11 @@ const QfxSeatSelection = () => {
 
     // Group seats by row
     const rows = {};
-    layout.seats.forEach(seat => {
-        const row = seat.seatNumber.charAt(0);
+    // Check if layout.Seats exists and is an array
+    const seats = Array.isArray(layout.Seats) ? layout.Seats : [];
+
+    seats.forEach(seat => {
+        const row = seat.SeatNumber.charAt(0);
         if (!rows[row]) rows[row] = [];
         rows[row].push(seat);
     });
@@ -124,9 +130,9 @@ const QfxSeatSelection = () => {
             <div className="bg-gray-900 text-white min-h-screen py-8 px-4">
                 <div className="max-w-5xl mx-auto">
                     <div className="mb-8 text-center">
-                        <h1 className="text-3xl font-bold mb-2">{layout.movieName}</h1>
+                        <h1 className="text-3xl font-bold mb-2">{layout.MovieName}</h1>
                         <p className="text-gray-400">
-                            {layout.cinemaName} | {new Date(layout.startTime).toLocaleString()}
+                            {layout.CinemaName} | {new Date(layout.ShowTime).toLocaleString()}
                         </p>
                     </div>
 
@@ -142,23 +148,28 @@ const QfxSeatSelection = () => {
                                     <div key={rowLabel} className="flex items-center justify-center gap-4">
                                         <span className="w-6 text-center font-bold text-gray-500">{rowLabel}</span>
                                         <div className="flex gap-2">
-                                            {rows[rowLabel].sort((a, b) => parseInt(a.seatNumber.slice(1)) - parseInt(b.seatNumber.slice(1))).map(seat => {
-                                                const isSelected = selectedSeats.some(s => s.id === seat.id);
-                                                const isBooked = seat.status === 'BOOKED';
+                                            {rows[rowLabel].sort((a, b) => parseInt(a.SeatNumber.slice(1)) - parseInt(b.SeatNumber.slice(1))).map(seat => {
+                                                const isSelected = selectedSeats.some(s => s.id === seat.id); // Assuming id is still lowercase or check API
+                                                // Let's assume SeatID or just use SeatNumber as key if ID is missing, but usually ID is there.
+                                                // Checking previous mock data, it didn't show seat ID. Let's assume SeatID if available, else fallback.
+                                                // Actually, let's stick to PascalCase for everything.
+                                                const seatId = seat.SeatID || seat.id;
+                                                const isSelectedSeat = selectedSeats.some(s => (s.SeatID || s.id) === seatId);
+                                                const isBooked = seat.Status === 'BOOKED';
 
                                                 let seatColor = 'bg-gray-600 hover:bg-gray-500'; // Available
                                                 if (isBooked) seatColor = 'bg-red-900 cursor-not-allowed';
-                                                if (isSelected) seatColor = 'bg-green-500 hover:bg-green-400';
+                                                if (isSelectedSeat) seatColor = 'bg-green-500 hover:bg-green-400';
 
                                                 return (
                                                     <button
-                                                        key={seat.id}
+                                                        key={seatId}
                                                         disabled={isBooked}
                                                         onClick={() => handleSeatClick(seat)}
                                                         className={`w-8 h-8 rounded-t-lg text-xs flex items-center justify-center transition-colors ${seatColor}`}
-                                                        title={`${seat.seatNumber} - Rs.${seat.price}`}
+                                                        title={`${seat.SeatNumber} - Rs.${seat.Price}`}
                                                     >
-                                                        {seat.seatNumber.slice(1)}
+                                                        {seat.SeatNumber.slice(1)}
                                                     </button>
                                                 );
                                             })}
@@ -191,7 +202,7 @@ const QfxSeatSelection = () => {
                                 <div className="flex justify-between text-gray-400">
                                     <span>Seats</span>
                                     <span className="text-white font-medium">
-                                        {selectedSeats.map(s => s.seatNumber).join(', ') || '-'}
+                                        {selectedSeats.map(s => s.SeatNumber).join(', ') || '-'}
                                     </span>
                                 </div>
                                 <div className="flex justify-between text-gray-400">
