@@ -1,11 +1,27 @@
 import { useContext, useState, useEffect, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import BusDetail from "../components/busDetail";
 import NavigationBar from "../components/Navbar";
 import BusListContext from "../context/busdetails";
 import Footer from "../components/Footer";
+import { useApi } from "../hooks/useApi";
+import { busService } from "../services/bus.service";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
+import Button from "../components/ui/Button";
 
 const BusList = () => {
-  const { busList: buses = [] } = useContext(BusListContext);
+  const { busList: contextBuses, setBusList } = useContext(BusListContext);
+  const location = useLocation();
+  const [localBuses, setLocalBuses] = useState([]);
+
+  // Use the new useApi hook
+  const {
+    data: fetchedBuses,
+    loading,
+    error,
+    execute: searchBuses
+  } = useApi(busService.searchBuses);
+
   const [filters, setFilters] = useState({
     maxPrice: "",
     busType: "",
@@ -13,6 +29,32 @@ const BusList = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
+
+  // Determine which buses to display: context, fetched, or local storage
+  const buses = useMemo(() => {
+    if (fetchedBuses && fetchedBuses.length > 0) return fetchedBuses;
+    if (contextBuses && contextBuses.length > 0) return contextBuses;
+    return localBuses;
+  }, [fetchedBuses, contextBuses, localBuses]);
+
+  // Effect to handle data loading
+  useEffect(() => {
+    // If we have no buses in context, try to load from local storage or fetch
+    if (!contextBuses || contextBuses.length === 0) {
+      const storedBuses = localStorage.getItem("busListDetails");
+      if (storedBuses) {
+        try {
+          const parsed = JSON.parse(storedBuses);
+          setLocalBuses(parsed.busList || []);
+        } catch (e) {
+          console.error("Failed to parse stored buses", e);
+        }
+      }
+
+      // If we have search params in localStorage but no buses, we could trigger a search
+      // But for now, let's rely on what we have
+    }
+  }, [contextBuses]);
 
   const handleFilterChange = (event) => {
     const { name, value } = event.target;
@@ -30,6 +72,7 @@ const BusList = () => {
   const handlePreviousPage = () => {
     if (currentPage > 1) setCurrentPage((p) => p - 1);
   };
+
   const getStartingFare = (bus) => {
     if (!bus || !Array.isArray(bus.seats) || bus.seats.length === 0) return 0;
     return Math.min(...bus.seats.map((s) => Number(s.price) || 0));
@@ -53,6 +96,39 @@ const BusList = () => {
     // Reset to first page when filters or list change
     setCurrentPage(1);
   }, [filters.busType, filters.maxPrice, filteredBuses.length]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col">
+        <NavigationBar />
+        <main className="flex-grow flex items-center justify-center">
+          <LoadingSpinner size="lg" text="Finding the best buses for you..." />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col">
+        <NavigationBar />
+        <main className="flex-grow flex items-center justify-center">
+          <div className="text-center p-8 bg-white rounded-xl shadow-sm border border-red-100 max-w-md">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Something went wrong</h3>
+            <p className="text-slate-600 mb-6">{error}</p>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -144,34 +220,36 @@ const BusList = () => {
             {/* Pagination */}
             {filteredBuses.length > itemsPerPage && (
               <div className="mt-8 flex justify-center gap-2">
-                <button
-                  className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={handlePreviousPage}
                   disabled={currentPage === 1}
                 >
                   Previous
-                </button>
+                </Button>
                 <div className="flex gap-2">
                   {Array.from({ length: Math.max(1, Math.ceil(filteredBuses.length / itemsPerPage)) }).map((_, idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentPage(idx + 1)}
                       className={`w-10 h-10 rounded-lg font-medium transition-colors ${currentPage === idx + 1
-                          ? 'bg-indigo-600 text-white shadow-sm'
-                          : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                         }`}
                     >
                       {idx + 1}
                     </button>
                   ))}
                 </div>
-                <button
-                  className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={handleNextPage}
                   disabled={currentPage >= Math.ceil(filteredBuses.length / itemsPerPage)}
                 >
                   Next
-                </button>
+                </Button>
               </div>
             )}
           </div>
