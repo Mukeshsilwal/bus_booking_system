@@ -74,12 +74,18 @@ export default function TicketDetails() {
       payload
     );
 
-    // Expected backend response ↓
+    // Parse the JSON response
+    const responseData = await response.json();
+
+    // Expected backend response structure:
     // {
-    //   gatewayUrl: "https://uat.esewa.com.np/epay/main",
-    //   params: { ... }
+    //   "status": "INITIATED",
+    //   "data": {
+    //     "gatewayUrl": "...",
+    //     "params": { ... }
+    //   }
     // }
-    const { gatewayUrl, params } = response.data;
+    const { gatewayUrl, params } = responseData.data;
 
     // -----------------------------
     // 2) REDIRECT USER TO ESEWA
