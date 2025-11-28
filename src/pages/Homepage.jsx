@@ -23,12 +23,12 @@ export default function HomePage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="space-y-8 animate-slide-up">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
-                  Travel with <span className="text-indigo-400">Comfort</span> <br />
-                  & Confidence
+                  Your All-in-One <span className="text-indigo-400">Ticketing</span> <br />
+                  Platform
                 </h1>
                 <p className="text-lg text-indigo-100 max-w-xl leading-relaxed">
-                  Experience the most reliable intercity bus booking platform.
-                  Choose your preferred seats, pay securely, and travel hassle-free.
+                  Book buses, flights, movie tickets, and hotels all in one place.
+                  Seamless booking experience with secure payments and instant confirmations.
                 </p>
 
                 <div className="flex flex-wrap gap-4">
@@ -57,7 +57,7 @@ export default function HomePage() {
                       : 'text-white hover:bg-white/10'
                       }`}
                   >
-                    Bus Booking
+                    Bus
                   </button>
                   <button
                     onClick={() => setActiveTab('hotel')}
@@ -66,7 +66,7 @@ export default function HomePage() {
                       : 'text-white hover:bg-white/10'
                       }`}
                   >
-                    Hotel Booking
+                    Hotel
                   </button>
                   <button
                     onClick={() => setActiveTab('movie')}
@@ -75,7 +75,7 @@ export default function HomePage() {
                       : 'text-white hover:bg-white/10'
                       }`}
                   >
-                    Movie Ticket
+                    Movies
                   </button>
                   <button
                     onClick={() => setActiveTab('plane')}
@@ -84,7 +84,7 @@ export default function HomePage() {
                       : 'text-white hover:bg-white/10'
                       }`}
                   >
-                    Plane Booking
+                    Flights
                   </button>
                 </div>
 

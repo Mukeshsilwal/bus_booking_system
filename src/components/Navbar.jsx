@@ -52,7 +52,7 @@ const NavigationBar = () => {
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-8">
             <Link to="/" className={linkClasses(pageUrl === "/")}>Home</Link>
-            <Link to="/buslist" className={linkClasses(pageUrl === "/buslist")}>Search Buses</Link>
+            <Link to="/buslist" className={linkClasses(pageUrl === "/buslist")}>Book Tickets</Link>
 
             {!isAdminPath && !token && (
               <Link
@@ -100,23 +100,10 @@ const NavigationBar = () => {
             className={`block px-4 py-3 rounded-lg font-medium ${pageUrl === '/' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50'}`}
           >
             Home
-          </Link>
-          <Link
-            to="/buslist"
-            onClick={() => setMenuOpen(false)}
-            className={`block px-4 py-3 rounded-lg font-medium ${pageUrl === '/buslist' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50'}`}
-          >
-            Search Buses
-          </Link>
-
-          {!isAdminPath && !token && (
-            <Link
-              to="/login"
-              onClick={() => setMenuOpen(false)}
-              className="block px-4 py-3 rounded-lg font-medium text-indigo-600 hover:bg-indigo-50"
+            className="block px-4 py-3 rounded-lg font-medium text-indigo-600 hover:bg-indigo-50"
             >
-              Sign In
-            </Link>
+            Sign In
+          </Link>
           )}
 
           {isAdminPath && token && (

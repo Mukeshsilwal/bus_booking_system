@@ -77,9 +77,9 @@ export default function UserLogin() {
                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop')] bg-cover bg-center opacity-40"></div>
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 to-indigo-900/80"></div>
                 <div className="relative z-10 flex flex-col justify-center px-12 text-white">
-                    <h2 className="text-4xl font-bold mb-6">Welcome Aboard</h2>
+                    <h2 className="text-4xl font-bold mb-6">Your Gateway to Seamless Booking</h2>
                     <p className="text-lg text-indigo-100 max-w-md">
-                        Sign in to book your tickets, manage your trips, and travel with comfort and ease.
+                        Sign in to book tickets for buses, flights, movies, and hotels. Manage all your bookings in one place.
                     </p>
                 </div>
             </div>

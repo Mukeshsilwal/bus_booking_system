@@ -14,8 +14,7 @@ const Footer = () => {
                             <span className="text-xl font-bold">TicketKatum</span>
                         </div>
                         <p className="text-slate-400 max-w-sm">
-                            Experience the most comfortable and reliable bus travel across the country.
-                            Book your tickets with ease and travel with confidence.
+                            Your one-stop platform for all ticketing needs. Book buses, flights, movies, and hotels with ease and confidence.
                         </p>
                     </div>
 
@@ -23,7 +22,7 @@ const Footer = () => {
                         <h3 className="font-semibold text-lg mb-4">Quick Links</h3>
                         <ul className="space-y-2">
                             <li><Link to="/" className="text-slate-400 hover:text-white transition-colors">Home</Link></li>
-                            <li><Link to="/buslist" className="text-slate-400 hover:text-white transition-colors">Search Buses</Link></li>
+                            <li><Link to="/buslist" className="text-slate-400 hover:text-white transition-colors">Book Tickets</Link></li>
                             <li><Link to="/admin/login" className="text-slate-400 hover:text-white transition-colors">Admin Login</Link></li>
                         </ul>
                     </div>
