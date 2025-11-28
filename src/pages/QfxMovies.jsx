@@ -17,8 +17,8 @@ const QfxMovies = () => {
                     QfxService.getNowShowingMovies(),
                     QfxService.getUpcomingMovies()
                 ]);
-                setNowShowing(nowShowingRes || []);
-                setUpcoming(upcomingRes || []);
+                setNowShowing(Array.isArray(nowShowingRes) ? nowShowingRes : []);
+                setUpcoming(Array.isArray(upcomingRes) ? upcomingRes : []);
             } catch (error) {
                 console.error('Error fetching movies:', error);
             } finally {

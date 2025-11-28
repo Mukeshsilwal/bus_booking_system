@@ -3,11 +3,11 @@ import API_CONFIG from '../config/api';
 
 class QfxService {
     async getNowShowingMovies() {
-        return apiService.get(API_CONFIG.ENDPOINTS.QFX_MOVIES_NOW_SHOWING);
+        return apiService.get(API_CONFIG.ENDPOINTS.QFX_MOVIES_NOW_SHOWING).then(res => res.data);
     }
 
     async getUpcomingMovies() {
-        return apiService.get(API_CONFIG.ENDPOINTS.QFX_MOVIES_UPCOMING);
+        return apiService.get(API_CONFIG.ENDPOINTS.QFX_MOVIES_UPCOMING).then(res => res.data);
     }
 
     async getMovieDetails(id) {
