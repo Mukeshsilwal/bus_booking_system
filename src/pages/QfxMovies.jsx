@@ -52,8 +52,8 @@ const QfxMovies = () => {
                         <div className="bg-white rounded-lg shadow-sm p-1 inline-flex">
                             <button
                                 className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'nowShowing'
-                                        ? 'bg-orange-500 text-white'
-                                        : 'text-gray-500 hover:text-gray-700'
+                                    ? 'bg-orange-500 text-white'
+                                    : 'text-gray-500 hover:text-gray-700'
                                     }`}
                                 onClick={() => setActiveTab('nowShowing')}
                             >
@@ -61,8 +61,8 @@ const QfxMovies = () => {
                             </button>
                             <button
                                 className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'upcoming'
-                                        ? 'bg-orange-500 text-white'
-                                        : 'text-gray-500 hover:text-gray-700'
+                                    ? 'bg-orange-500 text-white'
+                                    : 'text-gray-500 hover:text-gray-700'
                                     }`}
                                 onClick={() => setActiveTab('upcoming')}
                             >
@@ -79,26 +79,26 @@ const QfxMovies = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                             {(activeTab === 'nowShowing' ? nowShowing : upcoming).map((movie) => (
                                 <div
-                                    key={movie.id}
+                                    key={movie.MovieID}
                                     className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition-transform hover:scale-105"
-                                    onClick={() => handleMovieClick(movie.id)}
+                                    onClick={() => handleMovieClick(movie.MovieID)}
                                 >
                                     <div className="relative pb-[150%]">
                                         <img
-                                            src={movie.posterUrl || 'https://via.placeholder.com/300x450?text=No+Poster'}
-                                            alt={movie.name}
+                                            src={movie.PosterUrl || 'https://via.placeholder.com/300x450?text=No+Poster'}
+                                            alt={movie.MovieName}
                                             className="absolute top-0 left-0 w-full h-full object-cover"
                                         />
                                         <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs font-bold">
-                                            {movie.rating || 'N/A'}
+                                            {movie.Rating || 'N/A'}
                                         </div>
                                     </div>
                                     <div className="p-4">
-                                        <h3 className="text-lg font-bold text-gray-900 truncate">{movie.name}</h3>
-                                        <p className="text-sm text-gray-500 mt-1">{movie.genre}</p>
+                                        <h3 className="text-lg font-bold text-gray-900 truncate">{movie.MovieName}</h3>
+                                        <p className="text-sm text-gray-500 mt-1">{movie.Genre}</p>
                                         <div className="mt-4 flex justify-between items-center">
                                             <span className="text-xs font-medium bg-gray-100 text-gray-800 px-2 py-1 rounded">
-                                                {movie.duration} min
+                                                {movie.Duration} min
                                             </span>
                                             {activeTab === 'nowShowing' && (
                                                 <button className="text-sm font-medium text-orange-600 hover:text-orange-500">
