@@ -41,6 +41,17 @@ const API_CONFIG = {
 
     // Payment endpoints
     GENERATE_SIGNATURE: '/secret/generateSignature',
+
+    // QFX Cinema Endpoints
+    QFX_MOVIES_NOW_SHOWING: '/qfx/movies/now-showing',
+    QFX_MOVIES_UPCOMING: '/qfx/movies/upcoming',
+    QFX_MOVIE_DETAILS: '/qfx/movies/', // + {id}
+    QFX_CINEMAS: '/qfx/cinemas',
+    QFX_SHOWTIMES: '/qfx/showtimes',
+    QFX_SEATS: '/qfx/seats/', // + {showtimeId}
+    QFX_BOOK_TICKET: '/booking/cinema/qfx',
+    QFX_CANCEL_BOOKING: '/booking/cinema/qfx/cancel',
+    QFX_BOOKING_STATUS: '/qfx/booking/', // + {bookingId}
   }
 };
 

@@ -16,6 +16,10 @@ import { AdminPanel } from "./pages/admin";
 import PlaneList from "./pages/PlaneList";
 import PlaneSeatSelection from "./pages/PlaneSeatSelection";
 import PlaneTicketConfirm from "./pages/PlaneTicketConfirm";
+import QfxMovies from "./pages/QfxMovies";
+import QfxMovieDetails from "./pages/QfxMovieDetails";
+import QfxSeatSelection from "./pages/QfxSeatSelection";
+import QfxBookingConfirmation from "./pages/QfxBookingConfirmation";
 
 function App() {
   return (
@@ -47,6 +51,28 @@ function App() {
           <Route
             path="/plane-confirm"
             element={<PlaneTicketConfirm />}
+            errorElement={<ErrorPage />}
+          />
+
+          {/* QFX Cinema Routes */}
+          <Route
+            path="/qfx/movies"
+            element={<QfxMovies />}
+            errorElement={<ErrorPage />}
+          />
+          <Route
+            path="/qfx/movie/:id"
+            element={<QfxMovieDetails />}
+            errorElement={<ErrorPage />}
+          />
+          <Route
+            path="/qfx/seats/:showtimeId"
+            element={<QfxSeatSelection />}
+            errorElement={<ErrorPage />}
+          />
+          <Route
+            path="/qfx/confirmation"
+            element={<QfxBookingConfirmation />}
             errorElement={<ErrorPage />}
           />
 

@@ -92,7 +92,18 @@ export default function HomePage() {
                   <div className="bg-white rounded-xl overflow-hidden shadow-inner">
                     {activeTab === 'bus' && <ImageSearchComponent />}
                     {activeTab === 'hotel' && <HotelSearchComponent />}
-                    {activeTab === 'movie' && <MovieSearchComponent />}
+                    {activeTab === 'movie' && (
+                      <div className="p-8 text-center">
+                        <h3 className="text-xl font-bold text-gray-800 mb-4">Book QFX Cinema Tickets</h3>
+                        <p className="text-gray-600 mb-6">Experience the best movies in town.</p>
+                        <a
+                          href="/qfx/movies"
+                          className="inline-block px-8 py-3 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 transition-colors"
+                        >
+                          Browse Movies
+                        </a>
+                      </div>
+                    )}
                     {activeTab === 'plane' && <PlaneSearchComponent />}
                   </div>
                 </div>
