@@ -52,14 +52,12 @@ export default function UserLogin() {
                     return;
                 }
 
-                // Enforce USER role only for user login
+                // Allow all roles (USER, ADMIN, SUPER_ADMIN) to access user portal
                 const normalizedRole = authService.getRole();
-                if (normalizedRole !== ROLES.USER) {
-                    toast.error("This portal is for regular users only. Please use the appropriate login portal.");
-                    authService.logout(); // Clear the stored data
-                    setIsLoading(false);
-                    return;
-                }
+
+                // Optional: You might want to redirect admins to admin panel if they login here, 
+                // but the requirement says they should be able to login to user panel.
+                // So we just allow it.
 
                 setEmail("");
                 setPassword("");
