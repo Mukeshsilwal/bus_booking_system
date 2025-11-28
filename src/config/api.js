@@ -43,12 +43,12 @@ const API_CONFIG = {
     GENERATE_SIGNATURE: '/secret/generateSignature',
 
     // QFX Cinema Endpoints
-    QFX_MOVIES_NOW_SHOWING: '/qfx/movies/now-showing',
-    QFX_MOVIES_UPCOMING: '/qfx/movies/upcoming',
-    QFX_MOVIE_DETAILS: '/qfx/movies/', // + {id}
-    QFX_CINEMAS: '/qfx/cinemas',
-    QFX_SHOWTIMES: '/qfx/showtimes',
-    QFX_SEATS: '/qfx/seats/', // + {showtimeId}
+    QFX_MOVIES_NOW_SHOWING: '/mock/qfx/api/movies/nowshowing',
+    QFX_MOVIES_UPCOMING: '/mock/qfx/api/movies/upcoming',
+    QFX_MOVIE_DETAILS: '/mock/qfx/api/movies/', // + {id}
+    QFX_CINEMAS: '/mock/qfx/api/cinemas',
+    QFX_SHOWTIMES: '/mock/qfx/api/showtimes',
+    QFX_SEATS: '/mock/qfx/api/seats/', // + {showtimeId}
     QFX_BOOK_TICKET: '/booking/cinema/qfx',
     QFX_CANCEL_BOOKING: '/booking/cinema/qfx/cancel',
     QFX_BOOKING_STATUS: '/qfx/booking/', // + {bookingId}
