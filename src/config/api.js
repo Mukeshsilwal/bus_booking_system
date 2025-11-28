@@ -10,6 +10,7 @@ const API_CONFIG = {
     GET_ADMIN_REQUESTS: '/register/all-requests',
     SEND_OTP: '/register/sent-otp',
     CHANGE_PASSWORD: '/register/change-password',
+    ESEWA_INITIATE: '/payment/initiate',
 
     // Bus Stop endpoint
     GET_BUS_STOPS: '/busStop/get',

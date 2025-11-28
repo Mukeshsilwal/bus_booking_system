@@ -47,32 +47,48 @@ export default function TicketDetails() {
   function generateRandomId() {
     return Array.from({ length: 10 }, () => Math.floor(Math.random() * 10)).join("");
   }
+  let provider = "esewa";
 
   // -----------------------------------
-  // ESEWA PAYMENT FORM SUBMIT
+  // INITIATE PAYMENT (BACKEND → ESEWA)
   // -----------------------------------
-  async function esewaPaymentCall(signature, tid, _bookingId) {
-    // Build form payload and submit to eSewa
-    const formData = {
+  async function esewaPaymentCall(tid, totalCost, user) {
+    const payload = {
+      customerId: user?.id ?? "USER-123",
       amount: totalCost,
-      failure_url: "https://busbookingsystem-mu.vercel.app/booking-failed",
-      product_delivery_charge: "0",
-      product_service_charge: "0",
-      product_code: "EPAYTEST",
-      signature: signature,
-      signed_field_names: "total_amount,transaction_uuid,product_code",
-      success_url: "https://busbookingsystem-mu.vercel.app/ticket-confirm",
-      tax_amount: "0",
-      total_amount: totalCost,
-      transaction_uuid: tid,
-      secret: "8gBm/:&EnhH.1/q",
+      metadata: {
+        productId: "BUS-TICKET-2025",
+        transactionUUID: tid
+      },
+      successUrl: "https://busbookingsystem-mu.vercel.app/ticket-confirm",
+      failureUrl: "https://busbookingsystem-mu.vercel.app/booking-failed",
+      customerEmail: user.email,
+      customerName: user.name
     };
 
+    // -----------------------------
+    // 1) CALL BACKEND TO INITIATE
+    // -----------------------------
+    const response = await ApiService.post(
+      `${API_CONFIG.ENDPOINTS.ESEWA_INITIATE}/${provider}`,
+      payload
+    );
+
+    // Expected backend response ↓
+    // {
+    //   gatewayUrl: "https://uat.esewa.com.np/epay/main",
+    //   params: { ... }
+    // }
+    const { gatewayUrl, params } = response.data.data;
+
+    // -----------------------------
+    // 2) REDIRECT USER TO ESEWA
+    // -----------------------------
     const form = document.createElement("form");
     form.method = "POST";
-    form.action = "https://rc-epay.esewa.com.np/api/epay/main/v2/form";
+    form.action = gatewayUrl;   // <--- dynamic URL from backend
 
-    Object.entries(formData).forEach(([key, value]) => {
+    Object.entries(params).forEach(([key, value]) => {
       const input = document.createElement("input");
       input.type = "hidden";
       input.name = key;
@@ -83,6 +99,7 @@ export default function TicketDetails() {
     document.body.appendChild(form);
     form.submit();
   }
+
 
   // -----------------------------------
   // BOOK TICKET MAIN FUNCTION
