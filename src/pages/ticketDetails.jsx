@@ -79,7 +79,7 @@ export default function TicketDetails() {
     //   gatewayUrl: "https://uat.esewa.com.np/epay/main",
     //   params: { ... }
     // }
-    const { gatewayUrl, params } = response.data.data;
+    const { gatewayUrl, params } = response.data;
 
     // -----------------------------
     // 2) REDIRECT USER TO ESEWA
