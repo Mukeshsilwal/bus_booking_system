@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import NavigationBar from "../components/Navbar";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import API_CONFIG from "../config/api";
 import ApiService from "../services/api.service";
@@ -13,27 +13,84 @@ const TicketConfirmed = () => {
   const [devCancelResponse, setDevCancelResponse] = useState(null);
   const navigate = useNavigate();
 
+  const [searchParams] = useSearchParams();
+
   useEffect(() => {
-    fetchPdf();
+    const encodedData = searchParams.get("data");
+    if (encodedData) {
+      verifyPayment(encodedData);
+    } else {
+      fetchPdf();
+    }
     // revoke object URL on unmount or when pdfUrl changes
     return () => {
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
     };
-  }, []);
+  }, [searchParams]);
 
-  async function fetchPdf() {
+  async function verifyPayment(encodedData) {
+    setIsLoading(true);
+    setError("");
+    try {
+      // Decode the base64 encoded data from eSewa to get transaction_uuid
+      let transactionId = "";
+      try {
+        const decoded = JSON.parse(atob(encodedData));
+        transactionId = decoded.transaction_uuid;
+      } catch (e) {
+        console.error("Failed to decode eSewa data", e);
+        throw new Error("Invalid payment data");
+      }
+
+      let provider = "esewa";
+      const response = await ApiService.post(`${API_CONFIG.ENDPOINTS.ESEWA_VERIFY_PAYMENT}/${provider}`, {
+        transactionId: transactionId,
+        providerToken: encodedData
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        toast.success("Payment successful! Ticket confirmed.");
+        // Assuming backend returns ticket details including ID
+        const ticketData = response.data;
+        // Store in localStorage to match existing flow (optional, but good for consistency)
+        localStorage.setItem("seatRes", JSON.stringify([ticketData]));
+
+        // Now fetch the PDF using the ticket ID from response
+        const ticketId = ticketData.ticketNo || ticketData.ticketId || ticketData.id;
+        if (ticketId) {
+          fetchPdf(ticketId);
+        }
+      } else {
+        throw new Error("Payment verification failed");
+      }
+    } catch (err) {
+      console.error("Payment verification error:", err);
+      setError("Payment verification failed. Please contact support.");
+      toast.error("Payment verification failed.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function fetchPdf(specificTicketId = null) {
     setIsLoading(true);
     setError("");
 
-    const raw = JSON.parse(localStorage.getItem("seatRes")) || [];
-    const seatResponses = Array.isArray(raw) ? raw : [raw];
-    const firstTicket = seatResponses[0] || {};
+    let ticketId = specificTicketId;
 
-    const ticketId = firstTicket.ticketNo || firstTicket.ticketId || firstTicket.id;
+    if (!ticketId) {
+      const raw = JSON.parse(localStorage.getItem("seatRes")) || [];
+      const seatResponses = Array.isArray(raw) ? raw : [raw];
+      const firstTicket = seatResponses[0] || {};
+      ticketId = firstTicket.ticketNo || firstTicket.ticketId || firstTicket.id;
+    }
 
     if (!ticketId) {
       setError("No ticket found.");
-      toast.error("No ticket found!");
+      // Only show toast if we are not in the middle of a payment verification flow that failed
+      if (!searchParams.get("data")) {
+        toast.error("No ticket found!");
+      }
       setIsLoading(false);
       return;
     }

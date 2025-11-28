@@ -11,6 +11,7 @@ const API_CONFIG = {
     SEND_OTP: '/register/sent-otp',
     CHANGE_PASSWORD: '/register/change-password',
     ESEWA_INITIATE: '/payment/initiate',
+    ESEWA_VERIFY_PAYMENT: '/payment/verify',
 
     // Bus Stop endpoint
     GET_BUS_STOPS: '/busStop/get',
