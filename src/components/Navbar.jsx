@@ -100,10 +100,23 @@ const NavigationBar = () => {
             className={`block px-4 py-3 rounded-lg font-medium ${pageUrl === '/' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50'}`}
           >
             Home
-            className="block px-4 py-3 rounded-lg font-medium text-indigo-600 hover:bg-indigo-50"
-            >
-            Sign In
           </Link>
+          <Link
+            to="/buslist"
+            onClick={() => setMenuOpen(false)}
+            className={`block px-4 py-3 rounded-lg font-medium ${pageUrl === '/buslist' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50'}`}
+          >
+            Book Tickets
+          </Link>
+
+          {!isAdminPath && !token && (
+            <Link
+              to="/login"
+              onClick={() => setMenuOpen(false)}
+              className="block px-4 py-3 rounded-lg font-medium text-indigo-600 hover:bg-indigo-50"
+            >
+              Sign In
+            </Link>
           )}
 
           {isAdminPath && token && (

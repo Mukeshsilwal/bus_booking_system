@@ -49,7 +49,7 @@ const BusDetail = ({ bus }) => {
       }
     }
     return null;
-  }, [bus?.duration, bus?.arrivalDateTime, bus?.departureDateTime]);
+  }, [bus]);
 
   const priceFormatted = useMemo(() => {
     try {
@@ -57,7 +57,7 @@ const BusDetail = ({ bus }) => {
     } catch (_) {
       return `Rs. ${bus?.basePrice ?? 0}`;
     }
-  }, [bus?.basePrice]);
+  }, [bus]);
 
   const [showSeatPreview, setShowSeatPreview] = useState(false);
 
@@ -76,7 +76,7 @@ const BusDetail = ({ bus }) => {
       grid.push(row);
     }
     return { grid, cols, rows };
-  }, [bus?.seats, bus?.seatLayout]);
+  }, [bus]);
 
   return (
     <article

@@ -160,7 +160,7 @@ export default function Login() {
               Forgot password?
             </Link>
             <p className="text-slate-600">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link to="/admin/register" className="text-indigo-600 hover:text-indigo-500 font-medium">
                 Sign up
               </Link>

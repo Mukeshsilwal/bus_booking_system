@@ -72,7 +72,8 @@ export function DataTable({
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `export-${Date.now()}.csv`;
+            const timestamp = new Date().getTime();
+            a.download = `export-${timestamp}.csv`;
             a.click();
         }
     };
@@ -89,7 +90,7 @@ export function DataTable({
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search..."
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         />
                         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -200,8 +201,8 @@ export function DataTable({
                                 key={i}
                                 onClick={() => setCurrentPage(i + 1)}
                                 className={`px-3 py-1 rounded-lg transition-colors ${currentPage === i + 1
-                                        ? 'bg-indigo-600 text-white'
-                                        : 'border border-gray-300 hover:bg-white'
+                                    ? 'bg-indigo-600 text-white'
+                                    : 'border border-gray-300 hover:bg-white'
                                     }`}
                             >
                                 {i + 1}
@@ -220,3 +221,4 @@ export function DataTable({
         </div>
     );
 }
+

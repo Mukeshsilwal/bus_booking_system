@@ -267,7 +267,7 @@ const BusList = () => {
 
             {!hasMore && buses.length > 0 && (
               <div className="py-8 text-center text-slate-500 text-sm">
-                You've reached the end of the list.
+                You&apos;ve reached the end of the list.
               </div>
             )}
           </div>

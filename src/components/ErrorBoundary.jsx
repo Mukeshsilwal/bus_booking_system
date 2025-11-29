@@ -58,7 +58,7 @@ class ErrorBoundary extends React.Component {
 
                         {/* Error Message */}
                         <p className="text-gray-600 mb-6">
-                            We're sorry for the inconvenience. An unexpected error occurred.
+                            We&apos;re sorry for the inconvenience. An unexpected error occurred.
                         </p>
 
                         {/* Error Details (Development Only) */}

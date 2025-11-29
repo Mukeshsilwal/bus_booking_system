@@ -5,16 +5,24 @@ import Footer from "../components/Footer";
 
 const PlaneTicketConfirm = () => {
     const navigate = useNavigate();
-    const [bookingData, setBookingData] = useState(null);
 
-    useEffect(() => {
-        const data = JSON.parse(localStorage.getItem("planeBookingConfirmation"));
-        if (!data) {
-            navigate("/plane-list");
-        } else {
-            setBookingData(data);
+    // Initialize state with localStorage data directly (lazy initialization)
+    const [bookingData, setBookingData] = useState(() => {
+        try {
+            const data = JSON.parse(localStorage.getItem("planeListDetails"));
+            return data && data.selectedFlight ? data : null;
+        } catch (error) {
+            console.error("Error parsing localStorage:", error);
+            return null;
         }
-    }, [navigate]);
+    });
+
+    // Separate effect ONLY for navigation check
+    useEffect(() => {
+        if (!bookingData) {
+            navigate("/plane-list");
+        }
+    }, [bookingData, navigate]);
 
     if (!bookingData) return null;
 

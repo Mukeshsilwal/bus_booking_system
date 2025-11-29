@@ -39,7 +39,7 @@ const PlaneDetail = ({ flight }) => {
             }
         }
         return null;
-    }, [flight?.duration, flight?.arrivalDateTime, flight?.departureDateTime]);
+    }, [flight]);
 
     const priceFormatted = useMemo(() => {
         try {
@@ -47,7 +47,7 @@ const PlaneDetail = ({ flight }) => {
         } catch (_) {
             return `Rs. ${flight?.basePrice ?? 0}`;
         }
-    }, [flight?.basePrice]);
+    }, [flight]);
 
     return (
         <article

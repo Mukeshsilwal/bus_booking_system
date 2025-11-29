@@ -7,7 +7,18 @@ import { toast } from "react-toastify";
 
 const PlaneSeatSelection = () => {
     const navigate = useNavigate();
-    const [selectedFlight, setSelectedFlight] = useState(null);
+
+    // Initialize state with localStorage data (lazy initialization)
+    const [selectedFlight, setSelectedFlight] = useState(() => {
+        try {
+            const storedData = JSON.parse(localStorage.getItem("planeListDetails"));
+            return storedData?.selectedFlight || null;
+        } catch (error) {
+            console.error("Error parsing localStorage:", error);
+            return null;
+        }
+    });
+
     const [selectedSeats, setSelectedSeats] = useState([]);
     const [passengerDetails, setPassengerDetails] = useState({
         name: "",
@@ -15,14 +26,12 @@ const PlaneSeatSelection = () => {
         contact: ""
     });
 
+    // Separate effect only for navigation
     useEffect(() => {
-        const storedData = JSON.parse(localStorage.getItem("planeListDetails"));
-        if (storedData && storedData.selectedFlight) {
-            setSelectedFlight(storedData.selectedFlight);
-        } else {
+        if (!selectedFlight) {
             navigate("/plane-list");
         }
-    }, [navigate]);
+    }, [selectedFlight, navigate]);
 
     const handleSeatClick = (seat) => {
         if (seat.reserved) return;

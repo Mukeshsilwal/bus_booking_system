@@ -1,21 +1,22 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
+// Custom Tooltip Component - moved outside to avoid creating during render
+const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-100">
+                <p className="text-gray-500 text-sm mb-1">{label}</p>
+                <p className="text-indigo-600 font-bold text-lg">
+                    Rs. {payload[0].value.toLocaleString()}
+                </p>
+            </div>
+        );
+    }
+    return null;
+};
+
 export function RevenueChart({ data }) {
-    // Custom Tooltip Component
-    const CustomTooltip = ({ active, payload, label }) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-100">
-                    <p className="text-gray-500 text-sm mb-1">{label}</p>
-                    <p className="text-indigo-600 font-bold text-lg">
-                        Rs. {payload[0].value.toLocaleString()}
-                    </p>
-                </div>
-            );
-        }
-        return null;
-    };
 
     if (!data || data.length === 0) {
         return (
