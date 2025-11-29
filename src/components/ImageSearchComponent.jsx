@@ -38,43 +38,16 @@ const ImageSearchComponent = () => {
       return;
     }
 
-    setIsSearching(true);
-    try {
-      const res = await ApiService.get(
-        `${API_CONFIG.ENDPOINTS.SEARCH_BUSES}?source=${encodeURIComponent(source)}&destination=${encodeURIComponent(destination)}&date=${encodeURIComponent(date)}`
-      );
+    // Save search details for persistence
+    localStorage.setItem("searchDetails", JSON.stringify({ source, destination, date }));
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        const msg = err.message || `Search failed: ${res.status}`;
-        setFetchError(msg);
-        toast.error(msg);
-        setIsSearching(false);
-        return;
-      }
+    // Clear previous bus list context to force fresh fetch in BusList
+    setBusList([]);
 
-      const response = await res.json();
-
-      // keep consistent structure: assume response is array of buses
-      const buses = Array.isArray(response) ? response : (response?.busList || []);
-
-      localStorage.setItem("searchDetails", JSON.stringify({ source, destination, date }));
-      localStorage.setItem("busListDetails", JSON.stringify({ busList: buses }));
-
-      setBusList(buses);
-
-      if (!buses || buses.length === 0) {
-        toast.info("No buses found for the selected route/date.");
-      }
-
-      navigate("/buslist");
-    } catch (error) {
-      console.error("Search failed:", error);
-      setFetchError("Search failed. Please try again.");
-      toast.error("Search failed. Please check your network or try later.");
-    } finally {
-      setIsSearching(false);
-    }
+    // Navigate to bus list with search params
+    navigate("/buslist", {
+      state: { source, destination, date }
+    });
   };
 
   useEffect(() => {

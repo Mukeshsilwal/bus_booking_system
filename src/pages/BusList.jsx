@@ -1,60 +1,111 @@
-import { useContext, useState, useEffect, useMemo } from "react";
+import { useContext, useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import BusDetail from "../components/busDetail";
 import NavigationBar from "../components/Navbar";
 import BusListContext from "../context/busdetails";
 import Footer from "../components/Footer";
-import { useApi } from "../hooks/useApi";
 import { busService } from "../services/bus.service";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import Button from "../components/ui/Button";
 
 const BusList = () => {
-  const { busList: contextBuses, setBusList } = useContext(BusListContext);
+  const { setBusList } = useContext(BusListContext);
   const location = useLocation();
-  const [localBuses, setLocalBuses] = useState([]);
 
-  // Use the new useApi hook
-  const {
-    data: fetchedBuses,
-    loading,
-    error,
-    execute: searchBuses
-  } = useApi(busService.searchBuses);
+  // State for infinite scroll
+  const [buses, setBuses] = useState([]);
+  const [cursor, setCursor] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+
+  // Search params from navigation or local storage
+  const searchParams = useMemo(() => {
+    if (location.state?.source && location.state?.destination && location.state?.date) {
+      return {
+        source: location.state.source,
+        destination: location.state.destination,
+        date: location.state.date
+      };
+    }
+
+    // Fallback to local storage if available
+    try {
+      const stored = localStorage.getItem("searchDetails");
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.error("Failed to parse stored search details", e);
+    }
+
+    return null;
+  }, [location.state]);
 
   const [filters, setFilters] = useState({
     maxPrice: "",
     busType: "",
   });
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
-
-  // Determine which buses to display: context, fetched, or local storage
-  const buses = useMemo(() => {
-    if (fetchedBuses && fetchedBuses.length > 0) return fetchedBuses;
-    if (contextBuses && contextBuses.length > 0) return contextBuses;
-    return localBuses;
-  }, [fetchedBuses, contextBuses, localBuses]);
-
-  // Effect to handle data loading
-  useEffect(() => {
-    // If we have no buses in context, try to load from local storage or fetch
-    if (!contextBuses || contextBuses.length === 0) {
-      const storedBuses = localStorage.getItem("busListDetails");
-      if (storedBuses) {
-        try {
-          const parsed = JSON.parse(storedBuses);
-          setLocalBuses(parsed.busList || []);
-        } catch (e) {
-          console.error("Failed to parse stored buses", e);
-        }
+  // Observer for infinite scroll
+  const observer = useRef();
+  const lastBusElementRef = useCallback(node => {
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        loadMoreBuses();
       }
+    });
+    if (node) observer.current.observe(node);
+  }, [loading, hasMore]);
 
-      // If we have search params in localStorage but no buses, we could trigger a search
-      // But for now, let's rely on what we have
+  const loadMoreBuses = async (isInitial = false) => {
+    if (loading || (!isInitial && !hasMore)) return;
+
+    if (!searchParams) {
+      setLoading(false);
+      setInitialLoadComplete(true);
+      return;
     }
-  }, [contextBuses]);
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const currentCursor = isInitial ? null : cursor;
+      const response = await busService.searchBuses({
+        ...searchParams,
+        cursor: currentCursor,
+        pageSize: 10
+      });
+
+      setBuses(prev => {
+        const newBuses = isInitial ? response.buses : [...prev, ...response.buses];
+        // Update context for other components if needed
+        setBusList(newBuses);
+        return newBuses;
+      });
+
+      setCursor(response.nextCursor);
+      setHasMore(response.hasMore);
+    } catch (err) {
+      setError(err.message || "Failed to load buses");
+    } finally {
+      setLoading(false);
+      setInitialLoadComplete(true);
+    }
+  };
+
+  // Initial load
+  useEffect(() => {
+    setBuses([]);
+    setCursor(null);
+    setHasMore(true);
+    setInitialLoadComplete(false);
+    loadMoreBuses(true);
+  }, [searchParams]);
 
   const handleFilterChange = (event) => {
     const { name, value } = event.target;
@@ -62,15 +113,6 @@ const BusList = () => {
       ...prevFilters,
       [name]: value,
     }));
-  };
-
-  const handleNextPage = () => {
-    const totalPages = Math.ceil(filteredBuses.length / itemsPerPage) || 1;
-    if (currentPage < totalPages) setCurrentPage((p) => p + 1);
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) setCurrentPage((p) => p - 1);
   };
 
   const getStartingFare = (bus) => {
@@ -88,16 +130,7 @@ const BusList = () => {
     });
   }, [buses, filters]);
 
-  const indexOfLastBus = currentPage * itemsPerPage;
-  const indexOfFirstBus = indexOfLastBus - itemsPerPage;
-  const currentBuses = filteredBuses.slice(indexOfFirstBus, indexOfLastBus);
-
-  useEffect(() => {
-    // Reset to first page when filters or list change
-    setCurrentPage(1);
-  }, [filters.busType, filters.maxPrice, filteredBuses.length]);
-
-  if (loading) {
+  if (!initialLoadComplete && loading && buses.length === 0) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col">
         <NavigationBar />
@@ -109,7 +142,7 @@ const BusList = () => {
     );
   }
 
-  if (error) {
+  if (error && buses.length === 0) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col">
         <NavigationBar />
@@ -195,11 +228,11 @@ const BusList = () => {
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-slate-900">Available Buses</h2>
               <div className="text-sm text-slate-500">
-                Showing {currentBuses.length} of {filteredBuses.length} results
+                Showing {filteredBuses.length} results
               </div>
             </div>
 
-            {filteredBuses.length === 0 ? (
+            {filteredBuses.length === 0 && !loading ? (
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,49 +240,34 @@ const BusList = () => {
                   </svg>
                 </div>
                 <h3 className="text-lg font-medium text-slate-900 mb-2">No buses found</h3>
-                <p className="text-slate-500">Try adjusting your filters to see more results.</p>
+                <p className="text-slate-500">Try adjusting your filters or search criteria.</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {currentBuses.map((bus) => (
-                  <BusDetail bus={bus} key={bus.id || bus._id} />
-                ))}
+                {filteredBuses.map((bus, index) => {
+                  if (index === filteredBuses.length - 1) {
+                    return (
+                      <div ref={lastBusElementRef} key={bus.id || bus._id || index}>
+                        <BusDetail bus={bus} />
+                      </div>
+                    );
+                  } else {
+                    return <BusDetail bus={bus} key={bus.id || bus._id || index} />;
+                  }
+                })}
               </div>
             )}
 
-            {/* Pagination */}
-            {filteredBuses.length > itemsPerPage && (
-              <div className="mt-8 flex justify-center gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handlePreviousPage}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </Button>
-                <div className="flex gap-2">
-                  {Array.from({ length: Math.max(1, Math.ceil(filteredBuses.length / itemsPerPage)) }).map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentPage(idx + 1)}
-                      className={`w-10 h-10 rounded-lg font-medium transition-colors ${currentPage === idx + 1
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
-                    >
-                      {idx + 1}
-                    </button>
-                  ))}
-                </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleNextPage}
-                  disabled={currentPage >= Math.ceil(filteredBuses.length / itemsPerPage)}
-                >
-                  Next
-                </Button>
+            {/* Loading more indicator */}
+            {loading && buses.length > 0 && (
+              <div className="py-8 flex justify-center">
+                <LoadingSpinner size="md" />
+              </div>
+            )}
+
+            {!hasMore && buses.length > 0 && (
+              <div className="py-8 text-center text-slate-500 text-sm">
+                You've reached the end of the list.
               </div>
             )}
           </div>

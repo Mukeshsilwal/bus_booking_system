@@ -4,9 +4,13 @@ import NavigationBar from "../components/Navbar";
 import SelectedBusContext from "../context/selectedbus";
 import API_CONFIG from "../config/api";
 import ApiService from "../services/api.service";
+import authService from "../services/authService";
 import { toast } from "react-toastify";
 import Footer from "../components/Footer";
 import { SeatIcon } from "../components/SeatIcon";
+import { validateBookingForm } from "../utils/validators";
+import { LoadingSpinner } from "../components/LoadingFallback";
+import Logger from "../utils/logger";
 import "./SeatSelection.css";
 
 export default function TicketDetails() {
@@ -20,6 +24,7 @@ export default function TicketDetails() {
   const [contact, setContact] = useState("");
   const [totalCost, setTotalCost] = useState(0);
   const [isBooking, setIsBooking] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
 
   // -----------------------------------
@@ -53,6 +58,52 @@ export default function TicketDetails() {
   // INITIATE PAYMENT (BACKEND → PROVIDER)
   // -----------------------------------
   async function handlePayment(tid, totalCost, user) {
+    // For Khalti, use specific payload structure
+    if (provider === 'khalti') {
+      const khaltiPayload = {
+        public_key: process.env.REACT_APP_KHALTI_PUBLIC_KEY || "",
+        mobile: contact || "",
+        transaction_pin: "",
+        product_identity: tid,
+        product_name: "Bus Ticket Booking",
+        amount: totalCost * 100, // Khalti expects amount in paisa (1 NPR = 100 paisa)
+        return_url: "https://busbookingsystem-mu.vercel.app/ticket-confirm",
+        website_url: "https://busbookingsystem-mu.vercel.app"
+      };
+
+      console.log("Sending Khalti payload:", khaltiPayload);
+
+      try {
+        const response = await ApiService.post(
+          `${API_CONFIG.ENDPOINTS.ESEWA_INITIATE}/${provider}`,
+          khaltiPayload
+        );
+
+        const responseData = await response.json();
+        console.log("Khalti backend response:", responseData);
+
+        // Khalti returns a payment_url to redirect to
+        const paymentUrl = responseData.payment_url || responseData.data?.payment_url || responseData.data?.pidx;
+
+        if (paymentUrl) {
+          console.log("Redirecting to Khalti:", paymentUrl);
+          window.location.href = paymentUrl;
+          return;
+        } else {
+          console.error("No payment URL in Khalti response:", responseData);
+          toast.error("Khalti payment URL not received. Please check backend configuration.");
+          setIsBooking(false);
+          return;
+        }
+      } catch (error) {
+        console.error("Khalti payment error:", error);
+        toast.error("Failed to initiate Khalti payment: " + (error.message || "Unknown error"));
+        setIsBooking(false);
+        return;
+      }
+    }
+
+    // For eSewa and IME Pay
     const payload = {
       customerId: user?.id ?? "USER-123",
       amount: totalCost,
@@ -76,6 +127,7 @@ export default function TicketDetails() {
 
     // Parse the JSON response
     const responseData = await response.json();
+    console.log(`${provider} backend response:`, responseData);
 
     // Expected backend response structure:
     // {
@@ -85,24 +137,26 @@ export default function TicketDetails() {
     //     "params": { ... }
     //   }
     // }
-    const { gatewayUrl, params } = responseData.data;
+    let gatewayUrl = responseData.data?.gatewayUrl || responseData.gatewayUrl;
+    let params = responseData.data?.params || responseData.params || responseData;
+
+    // Fallback to hardcoded URLs if backend doesn't provide them
+    if (!gatewayUrl) {
+      if (provider === 'esewa') {
+        gatewayUrl = 'https://rc-epay.esewa.com.np/api/epay/main/v2/form';
+      } else if (provider === 'imepay') {
+        gatewayUrl = 'https://payment.imepay.com.np:7979/WebCheckout/Checkout';
+      }
+    }
+
+    console.log(`Using gateway URL for ${provider}:`, gatewayUrl);
 
     // -----------------------------
     // 2) REDIRECT USER TO PAYMENT GATEWAY
     // -----------------------------
-    // For Khalti/IME Pay, the gatewayUrl might be different, but the mechanism is similar
-    // If the backend returns a direct payment URL (like for Khalti sometimes), we might just redirect
-    // But assuming form submission for consistency or based on backend response
-
-    if (provider === 'khalti' && params.payment_url) {
-      // Khalti might return a direct payment_url in params
-      window.location.href = params.payment_url;
-      return;
-    }
-
     const form = document.createElement("form");
     form.method = "POST";
-    form.action = gatewayUrl;   // <--- dynamic URL from backend
+    form.action = gatewayUrl;   // <--- dynamic URL from backend or fallback
 
     Object.entries(params).forEach(([key, value]) => {
       const input = document.createElement("input");
@@ -129,23 +183,53 @@ export default function TicketDetails() {
       return;
     }
 
-    // client-side validation
-    if (!selectedSeats.length) return toast.error("No seat selected!");
-    if (!name.trim()) return toast.error("Enter passenger name!");
-    if (!email.trim()) return toast.error("Enter email!");
-    if (!/^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$/.test(email)) return toast.error("Enter a valid email!");
-    if (!contact || String(contact).length < 7) return toast.error("Enter a valid phone number!");
+    // Get User Data
+    const userData = authService.getUserData();
+    const userId = userData?.id || 0;
+
+    // Enhanced validation using validators utility
+    const validation = validateBookingForm({
+      name,
+      email,
+      contact,
+      selectedSeats
+    });
+
+    if (!validation.valid) {
+      setFormErrors(validation.errors);
+      const firstError = Object.values(validation.errors)[0];
+      toast.error(firstError);
+      return;
+    }
+
+    // Clear form errors
+    setFormErrors({});
 
     setIsBooking(true);
     const tid = generateRandomId();
 
-    // 1️⃣ Create booking
-    let bookingId = "";
     try {
-      const bookingRes = await ApiService.post(API_CONFIG.ENDPOINTS.CREATE_BOOKING, {
-        fullName: name,
-        email,
-      });
+      // Map selected seat numbers to seat IDs
+      const seatIds = selectedSeats.map(seatNum => {
+        const seat = selectedBus.seats.find(s => s.seatNumber === seatNum);
+        return seat ? seat.id : null;
+      }).filter(id => id !== null);
+
+      if (seatIds.length !== selectedSeats.length) {
+        throw new Error("Invalid seat selection");
+      }
+
+      // 1️⃣ Create booking with seats in one go
+      // Use sanitized data from validation
+      const payload = {
+        bookingId: selectedBus.id || selectedBus._id,
+        fullName: validation.sanitized.name,
+        userId: Number(userId),
+        email: validation.sanitized.email,
+        seatIds: seatIds
+      };
+
+      const bookingRes = await ApiService.post(API_CONFIG.ENDPOINTS.CREATE_BOOKING, payload);
 
       if (!bookingRes.ok) {
         const err = await bookingRes.json().catch(() => ({}));
@@ -153,67 +237,15 @@ export default function TicketDetails() {
       }
 
       const data = await bookingRes.json();
-      bookingId = data.bookingId || data.booking_id || data.id || "";
+      // Assuming the response contains the created booking ID for reference
+      const newBookingId = data.bookingId || data.booking_id || data.id || "";
+
       localStorage.setItem("bookingRes", JSON.stringify(data));
-    } catch (err) {
-      console.error("Booking API error:", err);
-      toast.error(err.message || "Error creating booking");
-      setIsBooking(false);
-      return;
-    }
+      localStorage.setItem("seatRes", JSON.stringify(data.tickets || [])); // Adjust based on actual response if needed
+      localStorage.setItem("selectedSeats", JSON.stringify(selectedSeats));
+      localStorage.setItem("email", email);
 
-    // 2️⃣ Book seats (reserve on backend). If any seat booking fails, stop and show error.
-    const seatResponses = [];
-    const bookedSeatNumbers = [];
-
-    try {
-      for (const seatNum of selectedSeats) {
-        const seat = selectedBus.seats.find((s) => s.seatNumber === seatNum);
-        if (!seat) throw new Error(`Seat ${seatNum} not found`);
-
-        const res = await ApiService.post(
-          `${API_CONFIG.ENDPOINTS.BOOK_TICKET}/${seat.id}/book/${bookingId}`,
-          {}
-        );
-
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          const serverMsg = err && err.message ? err.message : `Failed to book seat ${seat.seatNumber}`;
-          console.error('Seat booking failed for seat', seat.seatNumber, { status: res.status, body: err });
-          // Provide a clearer error to the user including seat number
-          if (/(same entry)/i.test(serverMsg)) {
-            throw new Error(`Seat ${seat.seatNumber} could not be booked: ${serverMsg}. It appears a ticket already exists for this seat. Please refresh the page or choose a different seat.`);
-          }
-          throw new Error(`${serverMsg} (seat ${seat.seatNumber})`);
-        }
-
-        const data = await res.json();
-        seatResponses.push(data);
-        bookedSeatNumbers.push(seat.seatNumber);
-
-        // Confirm seat (mark as occupied)
-        try {
-          await ApiService.post(`${API_CONFIG.ENDPOINTS.BOOK_SEAT}/${seat.id}`, {});
-        } catch (confirmErr) {
-          console.warn('Failed to confirm seat occupancy after booking', seat.seatNumber, confirmErr);
-          // non-fatal: continue — the main booking succeeded and seatResponses contains the server data
-        }
-      }
-    } catch (err) {
-      console.error("Seat booking error:", err);
-      toast.error(err.message || "One or more seats couldn't be booked");
-      setIsBooking(false);
-      return;
-    }
-
-    // Save booking and seat info locally before payment
-    localStorage.setItem("seatRes", JSON.stringify(seatResponses));
-    localStorage.setItem("selectedSeats", JSON.stringify(bookedSeatNumbers));
-    localStorage.setItem("email", email);
-
-    // 3️⃣ Get eSewa signature (Only needed for eSewa usually, but keeping flow consistent)
-    // If other providers don't need signature, backend initiate endpoint should handle it or ignore it
-    try {
+      // 2️⃣ Get eSewa signature
       const sigRes = await ApiService.get(
         `${API_CONFIG.ENDPOINTS.GENERATE_SIGNATURE}?total_cost=${totalCost}&transaction_uuid=${tid}`
       );
@@ -225,15 +257,23 @@ export default function TicketDetails() {
 
       const signature = await sigRes.text();
 
-      // 4️⃣ Submit to Payment Gateway
-      await handlePayment(signature, tid, bookingId);
+      // 3️⃣ Submit to Payment Gateway (FIXED: correct parameters)
+      await handlePayment(tid, totalCost, userData);
+
     } catch (err) {
-      console.error("Signature/API error:", err);
-      toast.error(err.message || "Signature API error!");
+      Logger.error("Booking Error:", err);
+
+      // User-friendly error messages
+      let errorMessage = "Booking failed. Please try again.";
+      if (err.isTimeout) {
+        errorMessage = "Request timeout. Please check your internet connection.";
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      toast.error(errorMessage);
       setIsBooking(false);
-      return;
     }
-    // isBooking will end after redirect; keep true briefly
   }
 
   // -----------------------------------
@@ -270,10 +310,19 @@ export default function TicketDetails() {
                   <input
                     type="text"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="input-field"
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      if (formErrors.name) {
+                        setFormErrors(prev => ({ ...prev, name: undefined }));
+                      }
+                    }}
+                    className={`input-field ${formErrors.name ? 'border-red-500' : ''}`}
                     placeholder="John Doe"
+                    required
                   />
+                  {formErrors.name && (
+                    <p className="text-red-500 text-sm mt-1">{formErrors.name}</p>
+                  )}
                 </div>
 
                 <div>
@@ -281,10 +330,19 @@ export default function TicketDetails() {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="input-field"
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (formErrors.email) {
+                        setFormErrors(prev => ({ ...prev, email: undefined }));
+                      }
+                    }}
+                    className={`input-field ${formErrors.email ? 'border-red-500' : ''}`}
                     placeholder="john@example.com"
+                    required
                   />
+                  {formErrors.email && (
+                    <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
+                  )}
                 </div>
 
                 <div className="md:col-span-2">
@@ -292,10 +350,19 @@ export default function TicketDetails() {
                   <input
                     type="tel"
                     value={contact}
-                    onChange={(e) => setContact(e.target.value)}
-                    className="input-field"
+                    onChange={(e) => {
+                      setContact(e.target.value);
+                      if (formErrors.contact) {
+                        setFormErrors(prev => ({ ...prev, contact: undefined }));
+                      }
+                    }}
+                    className={`input-field ${formErrors.contact ? 'border-red-500' : ''}`}
                     placeholder="+977 9800000000"
+                    required
                   />
+                  {formErrors.contact && (
+                    <p className="text-red-500 text-sm mt-1">{formErrors.contact}</p>
+                  )}
                 </div>
               </div>
             </section>
@@ -427,7 +494,14 @@ export default function TicketDetails() {
                     borderColor: provider === 'khalti' ? '#5c2d91' : provider === 'imepay' ? '#ed1c24' : undefined
                   }}
                 >
-                  {isBooking ? 'Processing...' : `Pay with ${provider === 'esewa' ? 'eSewa' : provider === 'khalti' ? 'Khalti' : 'IME Pay'}`}
+                  {isBooking ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <LoadingSpinner size="small" />
+                      Processing...
+                    </span>
+                  ) : (
+                    `Pay with ${provider === 'esewa' ? 'eSewa' : provider === 'khalti' ? 'Khalti' : 'IME Pay'}`
+                  )}
                 </button>
                 <p className="text-xs text-center text-slate-500 mt-4">
                   By clicking Pay, you agree to our Terms & Conditions

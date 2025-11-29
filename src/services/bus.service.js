@@ -10,21 +10,20 @@ class BusService {
      * @param {string} params.date - Travel date (YYYY-MM-DD)
      * @returns {Promise<Array>} List of available buses
      */
-    async searchBuses({ source, destination, date }) {
-        const queryParams = new URLSearchParams({
+    async searchBuses({ source, destination, date, cursor = null, pageSize = 10 }) {
+        const response = await apiService.post(API_CONFIG.ENDPOINTS.SEARCH_BUSES, {
             source,
             destination,
-            date
-        }).toString();
-
-        const response = await apiService.get(`${API_CONFIG.ENDPOINTS.SEARCH_BUSES}?${queryParams}`);
+            date,
+            cursor,
+            pageSize
+        });
 
         if (!response.ok) {
             throw new Error('Failed to search buses');
         }
 
-        const data = await response.json();
-        return Array.isArray(data) ? data : (data?.busList || []);
+        return await response.json();
     }
 
     /**
