@@ -86,9 +86,9 @@ export default function AdminLogin() {
                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1570125909232-eb263c188f7e?q=80&w=2071&auto=format&fit=crop')] bg-cover bg-center opacity-40"></div>
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/90 to-purple-900/80"></div>
                 <div className="relative z-10 flex flex-col justify-center px-12 text-white">
-                    <h2 className="text-4xl font-bold mb-6">Admin Portal</h2>
+                    <h2 className="text-4xl font-bold mb-6">Unified Management Portal</h2>
                     <p className="text-lg text-indigo-100 max-w-md">
-                        Sign in to access your dashboard, manage bookings, and control your fleet with ease.
+                        Sign in to manage bookings for Buses, Hotels, Movies, and Flights. Control your entire ticketing ecosystem from one place.
                     </p>
                 </div>
             </div>
@@ -99,12 +99,12 @@ export default function AdminLogin() {
                     <div className="text-center">
                         <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                             </svg>
                         </div>
-                        <h1 className="text-3xl font-bold text-slate-900">Admin Sign In</h1>
+                        <h1 className="text-3xl font-bold text-slate-900">Portal Login</h1>
                         <p className="mt-2 text-sm text-slate-600">
-                            Enter your admin credentials to access the control panel
+                            Enter credentials to access the multi-service dashboard
                         </p>
                     </div>
 

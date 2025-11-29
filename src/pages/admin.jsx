@@ -7,6 +7,8 @@ import { BusManager } from "../components/admin/BusManager";
 import { RouteManager } from "../components/admin/RouteManager";
 import { TicketManager } from "../components/admin/TicketManager";
 import { AdminRequestManager } from "../components/admin/AdminRequestManager";
+import { HotelManager } from "../components/admin/HotelManager";
+import { CinemaManager } from "../components/admin/CinemaManager";
 
 export function AdminPanel() {
   const navigate = useNavigate();
@@ -36,6 +38,10 @@ export function AdminPanel() {
         return <TicketManager />;
       case 'requests':
         return <AdminRequestManager />;
+      case 'hotels':
+        return <HotelManager />;
+      case 'cinemas':
+        return <CinemaManager />;
       default:
         return <Dashboard />;
     }
