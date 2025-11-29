@@ -72,18 +72,28 @@ export function Sidebar({ activeTab, setActiveTab, onLogout }) {
             ),
             badge: pendingRequests
         },
+        {
+            id: 'settings',
+            label: 'Settings',
+            icon: (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            )
+        },
     ];
 
     return (
         <div
-            className={`${isCollapsed ? 'w-20' : 'w-72'} bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 shadow-2xl h-screen fixed left-0 top-0 flex flex-col z-20 transition-all duration-300 ease-in-out`}
+            className={`${isCollapsed ? 'w-20' : 'w-72'} bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 shadow-2xl h-screen fixed left-0 top-0 flex flex-col z-20 transition-all duration-300 ease-in-out`}
             style={{
                 backdropFilter: 'blur(10px)',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                // Background is handled by classes for dark mode support
             }}
         >
             {/* Header */}
-            <div className="p-6 border-b border-white/10">
+            <div className="p-6 border-b border-white/10 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                     {!isCollapsed && (
                         <h1 className="text-2xl font-bold text-white flex items-center gap-3">
@@ -108,7 +118,7 @@ export function Sidebar({ activeTab, setActiveTab, onLogout }) {
 
             {/* User Profile */}
             {!isCollapsed && (
-                <div className="p-6 border-b border-white/10">
+                <div className="p-6 border-b border-white/10 dark:border-gray-700">
                     <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
                             {(userData.name || 'Admin').charAt(0).toUpperCase()}
@@ -158,7 +168,7 @@ export function Sidebar({ activeTab, setActiveTab, onLogout }) {
             </nav>
 
             {/* Footer */}
-            <div className="p-4 border-t border-white/10 space-y-2">
+            <div className="p-4 border-t border-white/10 dark:border-gray-700 space-y-2">
                 {!isCollapsed && (
                     <div className="px-4 py-3 bg-white/10 backdrop-blur-sm rounded-xl mb-2">
                         <p className="text-white/60 text-xs mb-1">System Status</p>

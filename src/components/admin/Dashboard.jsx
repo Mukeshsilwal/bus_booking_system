@@ -151,7 +151,7 @@ export function Dashboard() {
                 </div>
                 <button
                     onClick={fetchDashboardData}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors shadow-sm hover:shadow-md font-medium"
+                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors shadow-sm hover:shadow-md font-medium"
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -239,12 +239,12 @@ export function Dashboard() {
             {/* Charts and Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Revenue Chart */}
-                <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
+                <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-shadow">
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl font-bold text-gray-900">Revenue Overview</h3>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Revenue Overview</h3>
                         <div className="flex gap-2">
-                            <button className="px-3 py-1 text-sm bg-indigo-50 text-indigo-600 rounded-lg font-medium">7 Days</button>
-                            <button className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">30 Days</button>
+                            <button className="px-3 py-1 text-sm bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg font-medium">7 Days</button>
+                            <button className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">30 Days</button>
                         </div>
                     </div>
                     <div className="h-80">
@@ -253,25 +253,25 @@ export function Dashboard() {
                 </div>
 
                 {/* Recent Activity */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
-                    <h3 className="text-xl font-bold text-gray-900 mb-6">Recent Activity</h3>
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-shadow">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Recent Activity</h3>
                     <div className="space-y-4">
                         {recentActivity.length > 0 ? (
                             recentActivity.map((activity) => (
-                                <div key={activity.id} className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors">
+                                <div key={activity.id} className="flex items-start gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors">
                                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
                                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                                         </svg>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-gray-900 truncate">{activity.title}</p>
+                                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{activity.title}</p>
                                         <div className="flex items-center gap-2 mt-1">
-                                            <p className="text-xs text-gray-500">{getTimeAgo(activity.time)}</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400">{getTimeAgo(activity.time)}</p>
                                             {activity.amount && (
                                                 <>
-                                                    <span className="text-gray-300">•</span>
-                                                    <p className="text-xs font-semibold text-green-600">Rs. {activity.amount}</p>
+                                                    <span className="text-gray-300 dark:text-gray-600">•</span>
+                                                    <p className="text-xs font-semibold text-green-600 dark:text-green-400">Rs. {activity.amount}</p>
                                                 </>
                                             )}
                                         </div>
